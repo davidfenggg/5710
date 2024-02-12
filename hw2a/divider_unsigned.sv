@@ -10,7 +10,7 @@ module divider_unsigned (
     output wire [31:0] o_remainder,
     output wire [31:0] o_quotient
 );
-
+    // for (0 to 31)
     // TODO: your code here
 
 endmodule
@@ -25,7 +25,7 @@ module divu_1iter (
     output wire [31:0] o_remainder,
     output wire [31:0] o_quotient
 );
-  /*
+    /*
     for (int i = 0; i < 32; i++) {
         remainder = (remainder << 1) | ((dividend >> 31) & 0x1);
         if (remainder < divisor) {
@@ -37,7 +37,19 @@ module divu_1iter (
         dividend = dividend << 1;
     }
     */
+    wire [31:0] shifted_remainder;
 
-    // TODO: your code here
+    always_comb begin
+        shifted_remainder = {i_remainder << 1} | (i_dividend >> 31);
+        if(shifted_remainder < i_divisor) begin
+            o_quotient = (i_quotient << 1);
+            o_remainder = shifted_remainder;
+        end
+        else begin
+            o_quotient = (i_quotient << 1) | 4'b1;
+            o_remainder = shifted_remainder - i_divisor;
+        end
+        assign o_dividend = i_dividend << 1;
+    end
 
 endmodule
