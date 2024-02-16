@@ -303,11 +303,9 @@ async def riscvTest(dut, binaryPath=None):
     raise SimTimeoutError()
 
 # NB: this test is only for HW3B
-@cocotb.test()
+@cocotb.test(skip='RVTEST_ALUBR' in os.environ)
 async def testStoreLoad(dut):
     "Check that a load can read a previously-stored value."
-    if 'RVTEST_ALUBR' in os.environ:
-        return
     asm(dut, '''
         lui x1,0x12345
         sw x1,32(x0) # store x1 to address [32]. NB: code starts at address 0, don't overwrite it!
@@ -318,11 +316,11 @@ async def testStoreLoad(dut):
     await ClockCycles(dut.clock_proc, 4)
     assert dut.datapath.rf.regs[2].value == 0x12345000, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
 
-@cocotb.test()
+@cocotb.test(skip='RVTEST_ALUBR' in os.environ)
 async def dhrystone(dut):
     "Run dhrystone benchmark from riscv-tests"
-    if 'RVTEST_ALUBR' in os.environ:
-        return
+    #if 'RVTEST_ALUBR' in os.environ:
+    #    return
     dsBinary = RISCV_BENCHMARKS_PATH / 'dhrystone.riscv' 
     assert dsBinary.exists(), f'Could not find Dhrystone binary {dsBinary}, have you built riscv-tests?'
     loadBinaryIntoMemory(dut, dsBinary)
@@ -347,9 +345,8 @@ async def dhrystone(dut):
 RV_TEST_BINARIES = [
     RISCV_TESTS_PATH / 'rv32ui-p-simple', # 1
     RISCV_TESTS_PATH / 'rv32ui-p-lui',
-    RISCV_TESTS_PATH / 'rv32ui-p-auipc',
     
-    RISCV_TESTS_PATH / 'rv32ui-p-and', # 4
+    RISCV_TESTS_PATH / 'rv32ui-p-and', # 3
     RISCV_TESTS_PATH / 'rv32ui-p-or',
     RISCV_TESTS_PATH / 'rv32ui-p-xor',
     RISCV_TESTS_PATH / 'rv32ui-p-sll',
@@ -359,7 +356,7 @@ RV_TEST_BINARIES = [
     RISCV_TESTS_PATH / 'rv32ui-p-add',
     RISCV_TESTS_PATH / 'rv32ui-p-sub',
     
-    RISCV_TESTS_PATH / 'rv32ui-p-andi', # 13
+    RISCV_TESTS_PATH / 'rv32ui-p-andi', # 12
     RISCV_TESTS_PATH / 'rv32ui-p-ori',
     RISCV_TESTS_PATH / 'rv32ui-p-slli',
     RISCV_TESTS_PATH / 'rv32ui-p-srai',
@@ -370,15 +367,16 @@ RV_TEST_BINARIES = [
     RISCV_TESTS_PATH / 'rv32ui-p-sltu',
     RISCV_TESTS_PATH / 'rv32ui-p-addi',
     
-    RISCV_TESTS_PATH / 'rv32ui-p-beq', # 23
+    RISCV_TESTS_PATH / 'rv32ui-p-beq', # 22
     RISCV_TESTS_PATH / 'rv32ui-p-bge',
     RISCV_TESTS_PATH / 'rv32ui-p-bgeu',
     RISCV_TESTS_PATH / 'rv32ui-p-blt',
     RISCV_TESTS_PATH / 'rv32ui-p-bltu',
     RISCV_TESTS_PATH / 'rv32ui-p-bne',
 
-    RISCV_TESTS_PATH / 'rv32ui-p-jal', # 29
+    RISCV_TESTS_PATH / 'rv32ui-p-jal', # 28
     RISCV_TESTS_PATH / 'rv32ui-p-jalr',
+    RISCV_TESTS_PATH / 'rv32ui-p-auipc', # needs JAL
 
     RISCV_TESTS_PATH / 'rv32ui-p-lb', # 31
     RISCV_TESTS_PATH / 'rv32ui-p-lbu',
