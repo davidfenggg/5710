@@ -111,12 +111,45 @@ module cla(
     assign carry[8] = gout[0] | (pout[0] & cin);
     // Repeat for other gp8 blocks with similar logic...
 
+    gp8 gp8_1(
+        .gin(g[15:8]),
+        .pin(p[15:8]),
+        .cin(carry[8]),
+        .gout(gout[1]),
+        .pout(pout[1]),
+        .cout(cout1) // Corrected: Just pass cout0, which is 7 bits wide
+    );
+
+     assign carry[16] = gout[1] | (pout[1] & (gout[0] | (pout[0] & cin)));
+
+     gp8 gp8_2(
+        .gin(g[23:16]),
+        .pin(p[23:16]),
+        .cin(carry[16]),
+        .gout(gout[2]),
+        .pout(pout[2]),
+        .cout(cout2) // Corrected: Just pass cout0, which is 7 bits wide
+    );
+
+     assign carry[24] = gout[2] | (pout[2] & (gout[1] | (pout[1] & (gout[0] | (pout[0] & cin)))));
+
+     gp8 gp8_3(
+        .gin(g[31:24]),
+        .pin(p[31:24]),
+        .cin(carry[23]),
+        .gout(gout[3]),
+        .pout(pout[3]),
+        .cout(cout3) // Corrected: Just pass cout0, which is 7 bits wide
+    );
+
+    assign carry[0] = cin;
+    assign carry[7:1] = cout0;
+    assign carry[15:9] = cout1;
+    assign carry[23:17] = cout2;
+    assign carry[31:25] = cout3;
+
     // Compute the sum
-    assign sum[0] = a[0] ^ b[0] ^ cin;
-    for (i = 1; i < 32; i = i + 1) begin
-        // This is where you correctly propagate carry signals, avoiding circular logic
-        assign sum[i] = a[i] ^ b[i] ^ carry[i];
-    end
+    assign sum = a ^ b ^ carry;
 
     // Properly chain carry signals between gp8 blocks
     // Example for chaining carry from the first to the second block:
