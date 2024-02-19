@@ -195,6 +195,57 @@ module DatapathSingleCycle (
       OpLui: begin
         // TODO: start here by implementing lui
       end
+      OpAddi: begin
+        // TODO: start here by implementing addi
+      end
+      OpSlti: begin
+        // TODO: start here by implementing slti
+      end
+      OpSltiu: begin
+        // TODO: start here by implementing sltiu
+      end
+      OpXori: begin
+        // TODO: start here by implementing xori
+      end
+      OpOri: begin
+        // TODO: start here by implementing ori
+      end
+      OpAndi: begin
+        // TODO: start here by implementing andi
+      end
+      Opslli: begin
+        // TODO: start here by implementing slli
+      end
+      OpSrli: begin
+        // TODO: start here by implementing srli
+      end
+      OpSrai: begin
+        // TODO: start here by implementing srai
+      end
+      OpAdd: begin
+        // TODO: start here by implementing add
+      end
+      OpBeq: begin
+        // TODO: start here by implementing beq
+      end
+      OpBne: begin
+        // TODO: start here by implementing bne
+      end
+      OpBlt: begin
+        // TODO: start here by implementing blt
+      end
+      OpBge: begin
+        // TODO: start here by implementing bge
+      end
+      OpBltu: begin
+        // TODO: start here by implementing bltu
+      end
+      OpBgeu: begin
+        // TODO: start here by implementing bgeu
+      end
+      OpEcall: begin
+        // TODO: start here by implementing ecall
+      end
       default: begin
         illegal_insn = 1'b1;
       end
