@@ -177,52 +177,52 @@ if __name__ == "__main__":
 ## TEST CASES GO HERE ##
 ########################
 
-@cocotb.test()
-async def testLui(dut):
-    "Run one lui insn"
-    asm(dut, 'lui x1,0x12345')
-    await preTestSetup(dut)
-
-    await ClockCycles(dut.clock_proc, 2)
-    assert dut.datapath.rf.regs[1].value == 0x12345000, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
-
 # @cocotb.test()
-# async def testAddi(dut):
-#     "Run one addi insn"
-#     asm(dut, 'addi x1,x0,9')
+# async def testLui(dut):
+#     "Run one lui insn"
+#     asm(dut, 'lui x1,0x12345')
 #     await preTestSetup(dut)
 
 #     await ClockCycles(dut.clock_proc, 2)
-#     assert dut.datapath.rf.regs[1].value == 9, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
+#     assert dut.datapath.rf.regs[1].value == 0x12345000, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
 
-# @cocotb.test()
-# async def testLuiAddi(dut):
-#     "Run two insns to check PC incrementing"
-#     asm(dut, '''
-#         lui x1,0x12345
-#         addi x1,x1,0x678''')
-#     await preTestSetup(dut)
+@cocotb.test()
+async def testAddi(dut):
+    "Run one addi insn"
+    asm(dut, 'addi x1,x0,9')
+    await preTestSetup(dut)
 
-#     await ClockCycles(dut.clock_proc, 3)
-#     assert dut.datapath.rf.regs[1].value == 0x12345678, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
+    await ClockCycles(dut.clock_proc, 2)
+    assert dut.datapath.rf.regs[1].value == 9, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
 
-# @cocotb.test()
-# async def testAddiAll(dut):
-#     "Check all immediate values for addi x1,x0,IMM"
-#     code = ""
-#     for imm in range(-2048,2048):
-#         code += f'addi x1,x0,{imm}\n'
-#         pass
-#     asm(dut, code)
-#     await preTestSetup(dut)
-#     await RisingEdge(dut.clock_proc)
+@cocotb.test()
+async def testLuiAddi(dut):
+    "Run two insns to check PC incrementing"
+    asm(dut, '''
+        lui x1,0x12345
+        addi x1,x1,0x678''')
+    await preTestSetup(dut)
 
-#     for imm in range(-2048,2047):
-#         await RisingEdge(dut.clock_proc)
-#         expected = imm & 0xFFFFFFFF # convert to unsigned, to match cocotb
-#         assert expected == dut.datapath.rf.regs[1].value.integer, f'failed at cycle {dut.datapath.cycles_current.value.integer} with imm = {imm}'
-#         pass
-#     pass
+    await ClockCycles(dut.clock_proc, 3)
+    assert dut.datapath.rf.regs[1].value == 0x12345678, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
+
+@cocotb.test()
+async def testAddiAll(dut):
+    "Check all immediate values for addi x1,x0,IMM"
+    code = ""
+    for imm in range(-2048,2048):
+        code += f'addi x1,x0,{imm}\n'
+        pass
+    asm(dut, code)
+    await preTestSetup(dut)
+    await RisingEdge(dut.clock_proc)
+
+    for imm in range(-2048,2047):
+        await RisingEdge(dut.clock_proc)
+        expected = imm & 0xFFFFFFFF # convert to unsigned, to match cocotb
+        assert expected == dut.datapath.rf.regs[1].value.integer, f'failed at cycle {dut.datapath.cycles_current.value.integer} with imm = {imm}'
+        pass
+    pass
 
 # @cocotb.test()
 # async def testBneNotTaken(dut):
