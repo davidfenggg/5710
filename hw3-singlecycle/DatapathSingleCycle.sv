@@ -288,60 +288,116 @@ module DatapathSingleCycle (
             pcNext = pcCurrent + 4;
         end
 
+        
+        3'b001: begin
+          case(insn_from_imem[31:25])
+
+          //slli
+          7'd0: begin
+          end
+
+          default: begin
+            illegal_insn = 1'b1;
+          end
+          endcase
+        end
+
+        3'b101: begin
+          case(insn_from_imem[31:25])
+
+          //srli
+          7'd0: begin
+          end
+
+          //srai
+          7'b0100000: begin
+          end
+
+          default: begin
+            illegal_insn = 1'b1;
+          end
+          endcase
+        end
+      
           default: begin
             illegal_insn = 1'b1;
           end
         endcase
 
       end
-    //   OpSlti: begin
-    //     // TODO: start here by implementing slti
-    //   end
-    //   OpSltiu: begin
-    //     // TODO: start here by implementing sltiu
-    //   end
-    //   OpXori: begin
-    //     // TODO: start here by implementing xori
-    //   end
-    //   OpOri: begin
-    //     // TODO: start here by implementing ori
-    //   end
-    //   OpAndi: begin
-    //     // TODO: start here by implementing andi
-    //   end
-    //   Opslli: begin
-    //     // TODO: start here by implementing slli
-    //   end
-    //   OpSrli: begin
-    //     // TODO: start here by implementing srli
-    //   end
-    //   OpSrai: begin
-    //     // TODO: start here by implementing srai
-    //   end
-    //   OpAdd: begin
-    //     // TODO: start here by implementing add
-    //   end
-    //   OpBeq: begin
-    //     // TODO: start here by implementing beq
-    //   end
-    //   OpBne: begin
-    //     // TODO: start here by implementing bne
-    //   end
-    //   OpBlt: begin
-    //     // TODO: start here by implementing blt
-    //   end
-    //   OpBge: begin
-    //     // TODO: start here by implementing bge
-    //   end
-    //   OpBltu: begin
-    //     // TODO: start here by implementing bltu
-    //   end
-    //   OpBgeu: begin
-    //     // TODO: start here by implementing bgeu
-    //   end
-    //   OpEcall: begin
-    //     // TODO: start here by implementing ecall
-    //   end
+      OpBranch: begin
+        case (insn_from_imem[14:12])
+
+        //beq
+        3'b000: begin
+        end
+
+        //bne
+        3'b001: begin
+        end
+
+        //blt
+        3'b100: begin
+        end
+
+        //bge
+        3'b101: begin
+        end
+
+        //bltu
+        3'b110: begin
+        end
+
+        //bgeu
+        3'b111: begin
+        end
+
+        default: begin
+            illegal_insn = 1'b1;
+          end
+        endcase
+      end
+    
+    OpRegReg: begin
+      case(insn_from_imem[14:12])
+
+      // 
+      3'b000: begin
+        case(insn_from_imem[31:25])
+
+        //add
+        7'd0: begin
+        end
+
+        default: begin
+          illegal_insn = 1'b1;
+        end
+        endcase
+      end
+
+      default: begin
+          illegal_insn = 1'b1;
+      end
+
+      endcase
+
+      end
+    
+    OpEnviron: begin
+      case(insn_from_imem[31:7])
+
+      // ecall
+      25'd0: begin
+      end
+
+      default: begin
+          illegal_insn = 1'b1;
+      end
+
+      endcase
+
+      end
+      
       default: begin
         illegal_insn = 1'b1;
       end
