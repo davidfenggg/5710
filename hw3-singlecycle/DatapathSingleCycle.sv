@@ -218,6 +218,15 @@ module DatapathSingleCycle (
     .we(we)
   );
 
+  logic [`REG_SIZE] cla_a, cla_b, cla_sum;
+
+  cla adder (
+    .a(cla_a),
+    .b(cla_b),
+    .cin(1'b0),
+    .sum(cla_sum)
+  );
+
 
     logic [`REG_SIZE] write_data;
     logic [4:0] write_reg;
@@ -229,20 +238,25 @@ module DatapathSingleCycle (
       OpLui: begin
         rd_data = {insn_from_imem[31:12], 12'b0};
         we = 1'b1;
+        pcNext = pcCurrent + 4;
       end
+
       OpRegImm: begin
         case (insn_from_imem[14:12])
+
         // OpAddi
-          3'b000: begin
-            cla adder(
-                .a(insn_rs1),
-                .b({(insn_from_imem[31] == 1'b1 ? 20'b1 : 20'b0), insn_from_imem[31:20]}),
-                .cin(1'b0),
-                .sum(rd_data)
-            );
+        3'b000: begin
             we = 1'b1;
+            cla_a = rs1_data;
+            cla_b = imm_i_sext;
+            rd_data = cla_sum;
+            pcNext = pcCurrent + 4;
+          end
+          default: begin
+            illegal_insn = 1'b1;
           end
         endcase
+
       end
     //   OpSlti: begin
     //     // TODO: start here by implementing slti
