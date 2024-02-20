@@ -203,13 +203,32 @@ module DatapathSingleCycle (
   end
 
   logic illegal_insn;
+  logic [`REG_SIZE] rd_data, rs1_data, rs2_data;
+  logic we;
+
+  RegFile regFile_inst (
+    .clk(clk),
+    .rst(rst),
+    .rd(insn_rd),
+    .rd_data(rd_data),
+    .rs1(insn_rs1),
+    .rs1_data(rs1_data),
+    .rs2(insn_rs2),
+    .rs2_data(rs2_data),
+    .we(we)
+  );
+
+    logic [`REG_SIZE] write_data;
+    logic [4:0] write_reg;
+    logic write_enable;
 
   always_comb begin
     illegal_insn = 1'b0;
-
     case (insn_opcode)
       OpLui: begin
-        // TODO: start here by implementing lui
+        write_data = = {insn_from_imem[31:12], 12'b0};
+        write_reg = insn_rd;
+        we = 1'b1
       end
       OpAddi: begin
         // TODO: start here by implementing addi
