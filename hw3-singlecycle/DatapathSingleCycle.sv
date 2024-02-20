@@ -252,6 +252,42 @@ module DatapathSingleCycle (
             rd_data = cla_sum;
             pcNext = pcCurrent + 4;
           end
+
+        // Slti 
+        3'b010: begin
+            we = 1'b1;
+            
+            pcNext = pcCurrent + 4;
+          end
+
+        // Sltiu
+        3'b011: begin
+            we = 1'b1;
+            
+            pcNext = pcCurrent + 4;
+          end
+
+        // Xori
+        3'b100: begin
+            we = 1'b1;
+            rd_data = rs1_data ^ imm_b_sext;
+            pcNext = pcCurrent + 4;
+          end
+
+        // ori
+        3'b110: begin
+          we = 1'b1;
+            rd_data = rs1_data | imm_b_sext;
+            pcNext = pcCurrent + 4;
+        end
+
+        // andi
+        3'b111: begin
+          we = 1'b1;
+            rd_data = rs1_data & imm_b_sext;
+            pcNext = pcCurrent + 4;
+        end
+
           default: begin
             illegal_insn = 1'b1;
           end
