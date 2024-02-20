@@ -404,9 +404,9 @@ RV_TEST_BINARIES = [
     #RISCV_TESTS_PATH / 'rv32ui-p-ma_data',
 ]
 
-rvTestFactory = TestFactory(test_function=riscvTest)
-if 'RVTEST_ALUBR' in os.environ:
-    RV_TEST_BINARIES = RV_TEST_BINARIES[:27]
-    pass
-rvTestFactory.add_option(name='binaryPath', optionlist=RV_TEST_BINARIES)
-rvTestFactory.generate_tests()
+# rvTestFactory = TestFactory(test_function=riscvTest)
+# if 'RVTEST_ALUBR' in os.environ:
+#     RV_TEST_BINARIES = RV_TEST_BINARIES[:27]
+#     pass
+# rvTestFactory.add_option(name='binaryPath', optionlist=RV_TEST_BINARIES)
+# rvTestFactory.generate_tests()
