@@ -396,12 +396,153 @@ module DatapathSingleCycle (
             pcNext = pcCurrent + 4;
         end
 
+        //sub
+        7'b0100000: begin
+          we = 1'b1;
+          cla_a = rs1_data; 
+          cla_b = ~rs2_data;
+          rd_data = cla_sum + 1;
+          pcNext = pcCurrent + 4;
+        end
+
         default: begin
           illegal_insn = 1'b1;
         end
         endcase
       end
+    
+    3'b001: begin
+      case(insn_from_imem[31:25])
 
+      //sll
+      7'd0: begin
+        we = 1'b1;
+        rd_data = rs1_data << rs2_data[4:0];
+        pcNext = pcCurrent + 4;
+      end
+
+      default: begin
+          illegal_insn = 1'b1;
+      end
+
+      endcase
+
+    end
+
+    3'b010: begin
+      case(insn_from_imem[31:25])
+
+      //slt
+      7'd0: begin
+        we = 1'b1;
+        rd_data = ($signed(rs1_data) < $signed(rs2_data)) ? 1 : 0;
+        pcNext = pcCurrent + 4;
+      end
+
+      default: begin
+          illegal_insn = 1'b1;
+      end
+
+      endcase
+
+    end
+
+    3'b011: begin
+      case(insn_from_imem[31:25])
+
+      //sltu
+      7'd0: begin
+        we = 1'b1;
+        rd_data = ($unsigned(rs1_data) < $unsigned(rs2_data)) ? 1 : 0;
+        pcNext = pcCurrent + 4;
+      end
+
+      default: begin
+          illegal_insn = 1'b1;
+      end
+
+      endcase
+
+    end
+
+    3'b100: begin
+      case(insn_from_imem[31:25])
+
+      //xor
+      7'd0: begin
+        we = 1'b1;
+        rd_data = rs1_data ^ rs2_data;
+        pcNext = pcCurrent + 4;
+      end
+
+      default: begin
+          illegal_insn = 1'b1;
+      end
+
+      endcase
+
+    end
+
+    3'b101: begin
+      case(insn_from_imem[31:25])
+
+      //srl
+      7'd0: begin
+        we = 1'b1;
+        rd_data = rs1_data >> rs2_data[4:0];
+        pcNext = pcCurrent + 4;
+      end
+
+      //sra
+      7'b0100000: begin
+        we = 1'b1;
+        rd_data = rs1_data >>> rs2_data[4:0];
+        pcNext = pcCurrent + 4;
+      end
+
+      default: begin
+          illegal_insn = 1'b1;
+      end
+
+      endcase
+
+    end
+
+    3'b110: begin
+      case(insn_from_imem[31:25])
+
+      //or
+      7'd0: begin
+        we = 1'b1;
+        rd_data = rs1_data | rs2_data;
+        pcNext = pcCurrent + 4;
+      end
+
+      default: begin
+          illegal_insn = 1'b1;
+      end
+
+      endcase
+
+    end
+
+    3'b111: begin
+      case(insn_from_imem[31:25])
+
+      //and
+      7'd0: begin
+        we = 1'b1;
+        rd_data = rs1_data & rs2_data;
+        pcNext = pcCurrent + 4;
+      end
+
+      default: begin
+          illegal_insn = 1'b1;
+      end
+
+      endcase
+
+    end
       default: begin
           illegal_insn = 1'b1;
       end
