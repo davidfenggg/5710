@@ -253,38 +253,38 @@ module DatapathSingleCycle (
             pcNext = pcCurrent + 4;
           end
 
-        // Slti 
+        //Slti 
         3'b010: begin
             we = 1'b1;
-            
+            rd_data = ($signed(rs1_data) < imm_i_sext) ? 1 : 0;
             pcNext = pcCurrent + 4;
           end
 
         // Sltiu
         3'b011: begin
             we = 1'b1;
-            
+            rd_data = ($unsigned(rs1_data) < $unsigned(imm_i_sext)) ? 1 : 0;
             pcNext = pcCurrent + 4;
           end
 
         // Xori
         3'b100: begin
             we = 1'b1;
-            rd_data = rs1_data ^ imm_b_sext;
+            rd_data = rs1_data ^ imm_i_sext;
             pcNext = pcCurrent + 4;
           end
 
         // ori
         3'b110: begin
           we = 1'b1;
-            rd_data = rs1_data | imm_b_sext;
+            rd_data = rs1_data | imm_i_sext;
             pcNext = pcCurrent + 4;
         end
 
         // andi
         3'b111: begin
           we = 1'b1;
-            rd_data = rs1_data & imm_b_sext;
+            rd_data = rs1_data & imm_i_sext;
             pcNext = pcCurrent + 4;
         end
 
@@ -294,6 +294,9 @@ module DatapathSingleCycle (
 
           //slli
           7'd0: begin
+            we = 1'b1;
+            rd_data = rs1_data << imm_i[4:0];
+            pcNext = pcCurrent + 4;
           end
 
           default: begin
@@ -307,10 +310,16 @@ module DatapathSingleCycle (
 
           //srli
           7'd0: begin
+            we = 1'b1;
+            rd_data = rs1_data >> imm_i[4:0];
+            pcNext = pcCurrent + 4;
           end
 
           //srai
           7'b0100000: begin
+            we = 1'b1;
+            rd_data = rs1_data >>> imm_i[4:0];
+            pcNext = pcCurrent + 4;
           end
 
           default: begin
@@ -325,31 +334,44 @@ module DatapathSingleCycle (
         endcase
 
       end
+      
       OpBranch: begin
         case (insn_from_imem[14:12])
 
         //beq
         3'b000: begin
+            pcNext = rs1_data === rs2_data ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
+            we = 1'b0;
         end
 
         //bne
         3'b001: begin
+            pcNext = rs1_data !== rs2_data ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
+            we = 1'b0;
         end
 
         //blt
         3'b100: begin
+            pcNext = $signed(rs1_data) < $signed(rs2_data) ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
+            we = 1'b0;
         end
 
         //bge
         3'b101: begin
+            pcNext = $signed(rs1_data) >= $signed(rs2_data) ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
+            we = 1'b0;
         end
 
         //bltu
         3'b110: begin
+            pcNext = rs1_data < rs2_data ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
+            we = 1'b0;
         end
 
         //bgeu
         3'b111: begin
+            pcNext = rs1_data >= rs2_data ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
+            we = 1'b0;
         end
 
         default: begin
@@ -367,6 +389,11 @@ module DatapathSingleCycle (
 
         //add
         7'd0: begin
+            we = 1'b1;
+            cla_a = rs1_data;
+            cla_b = rs2_data;
+            rd_data = cla_sum;
+            pcNext = pcCurrent + 4;
         end
 
         default: begin
@@ -378,9 +405,7 @@ module DatapathSingleCycle (
       default: begin
           illegal_insn = 1'b1;
       end
-
       endcase
-
       end
     
     OpEnviron: begin
@@ -388,6 +413,7 @@ module DatapathSingleCycle (
 
       // ecall
       25'd0: begin
+        halt = 1'b1;
       end
 
       default: begin
