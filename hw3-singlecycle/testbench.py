@@ -281,7 +281,7 @@ if __name__ == "__main__":
 @cocotb.test()
 async def testOneRiscvTest(dut):
     "Use this to run one particular riscv test"
-    await riscvTest(dut, RISCV_TESTS_PATH / 'rv32ui-p-lui')
+    await riscvTest(dut, RISCV_TESTS_PATH / 'rv32ui-p-slti')
     
 @cocotb.test()
 async def testTwoRiscvTest(dut):

@@ -258,7 +258,7 @@ module DatapathSingleCycle (
         //Slti 
         3'b010: begin
             we = 1'b1;
-            rd_data = ($signed(rs1_data) < imm_i_sext) ? 1 : 0;
+            rd_data = ($signed(rs1_data) < $signed(imm_i_sext)) ? 1 : 0;
             pcNext = pcCurrent + 4;
           end
 
