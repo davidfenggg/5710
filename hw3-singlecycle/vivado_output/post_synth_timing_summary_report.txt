@@ -1,8 +1,8 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 --------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (lin64) Build 3064766 Wed Nov 18 09:12:47 MST 2020
-| Date         : Wed Feb 21 11:11:32 2024
-| Host         : big23.seas.upenn.edu running 64-bit openSUSE Leap 15.5
+| Date         : Wed Feb 21 15:47:03 2024
+| Host         : big06.seas.upenn.edu running 64-bit openSUSE Leap 15.5
 | Command      : report_timing_summary -file ./vivado_output/post_synth_timing_summary_report.txt
 | Design       : RiscvSystem
 | Device       : 7z020-clg484
@@ -44,7 +44,7 @@ Table of Contents
 3. checking pulse_width_clock (0)
 4. checking unconstrained_internal_endpoints (0)
 5. checking no_input_delay (2)
-6. checking no_output_delay (7)
+6. checking no_output_delay (8)
 7. checking multiple_clock (0)
 8. checking generated_clocks (0)
 9. checking loops (0)
@@ -81,9 +81,9 @@ Table of Contents
  There are 0 input ports with no input delay but user has a false path constraint.
 
 
-6. checking no_output_delay (7)
+6. checking no_output_delay (8)
 -------------------------------
- There are 7 ports with no output delay specified. (HIGH)
+ There are 8 ports with no output delay specified. (HIGH)
 
  There are 0 ports with no output delay but user has a false path constraint
 
@@ -128,7 +128,7 @@ Table of Contents
 
     WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
-    194.848        0.000                      0                  452        0.045        0.000                      0                  452        3.000        0.000                       0                   225  
+    194.880        0.000                      0                  452        0.045        0.000                      0                  452        3.000        0.000                       0                   241  
 
 
 All user specified timing constraints are met.
@@ -155,7 +155,7 @@ CLOCK_100MHz          {0.000 5.000}        10.000          100.000
 Clock                     WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
 -----                     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
 CLOCK_100MHz                                                                                                                                                            3.000        0.000                       0                     1  
-  clk_mem_clk_wiz_0       194.848        0.000                      0                  444        0.045        0.000                      0                  444       13.360        0.000                       0                   210  
+  clk_mem_clk_wiz_0       194.880        0.000                      0                  444        0.045        0.000                      0                  444       13.360        0.000                       0                   226  
   clk_proc_clk_wiz_0      197.223        0.000                      0                    8        0.045        0.000                      0                    8       13.360        0.000                       0                    11  
   clkfbout_clk_wiz_0                                                                                                                                                   47.845        0.000                       0                     3  
 
@@ -213,7 +213,7 @@ High Pulse Width  Fast    MMCME2_ADV/CLKIN1  n/a            2.000         5.000 
 From Clock:  clk_mem_clk_wiz_0
   To Clock:  clk_mem_clk_wiz_0
 
-Setup :            0  Failing Endpoints,  Worst Slack      194.848ns,  Total Violation        0.000ns
+Setup :            0  Failing Endpoints,  Worst Slack      194.880ns,  Total Violation        0.000ns
 Hold  :            0  Failing Endpoints,  Worst Slack        0.045ns,  Total Violation        0.000ns
 PW    :            0  Failing Endpoints,  Worst Slack       13.360ns,  Total Violation        0.000ns
 ---------------------------------------------------------------------------------------------------
@@ -221,16 +221,16 @@ PW    :            0  Failing Endpoints,  Worst Slack       13.360ns,  Total Vio
 
 Max Delay Paths
 --------------------------------------------------------------------------------------
-Slack (MET) :             194.848ns  (required time - arrival time)
-  Source:                 oled_device/m_OLEDCtrl/MS_DELAY/stop_time_reg[5]/C
+Slack (MET) :             194.880ns  (required time - arrival time)
+  Source:                 oled_device/m_OLEDCtrl/MS_DELAY/clk_counter_reg[11]/C
                             (rising edge-triggered cell FDRE clocked by clk_mem_clk_wiz_0  {rise@50.000ns fall@150.000ns period=200.000ns})
   Destination:            oled_device/m_OLEDCtrl/MS_DELAY/ms_counter_reg[0]/R
                             (rising edge-triggered cell FDRE clocked by clk_mem_clk_wiz_0  {rise@50.000ns fall@150.000ns period=200.000ns})
   Path Group:             clk_mem_clk_wiz_0
   Path Type:              Setup (Max at Slow Process Corner)
   Requirement:            200.000ns  (clk_mem_clk_wiz_0 rise@250.000ns - clk_mem_clk_wiz_0 rise@50.000ns)
-  Data Path Delay:        4.161ns  (logic 1.430ns (34.367%)  route 2.731ns (65.633%))
-  Logic Levels:           3  (CARRY4=1 LUT3=1 LUT6=1)
+  Data Path Delay:        4.129ns  (logic 1.145ns (27.731%)  route 2.984ns (72.269%))
+  Logic Levels:           4  (LUT3=1 LUT4=1 LUT5=1 LUT6=1)
   Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
     Destination Clock Delay (DCD):    -2.550ns = ( 247.450 - 250.000 ) 
     Source Clock Delay      (SCD):    -1.769ns = ( 48.231 - 50.000 ) 
@@ -253,18 +253,19 @@ Slack (MET) :             194.848ns  (required time - arrival time)
                          net (fo=2, unplaced)         0.584    47.546    mmcm/clk_mem_clk_wiz_0
                          BUFGCTRL (Prop_bufgctrl_I0_O)
                                                       0.101    47.647 r  mmcm/clkout2_buf/O
-                         net (fo=199, unplaced)       0.584    48.231    oled_device/m_OLEDCtrl/MS_DELAY/clock_mem
-                         FDRE                                         r  oled_device/m_OLEDCtrl/MS_DELAY/stop_time_reg[5]/C
+                         net (fo=215, unplaced)       0.584    48.231    oled_device/m_OLEDCtrl/MS_DELAY/clock_mem
+                         FDRE                                         r  oled_device/m_OLEDCtrl/MS_DELAY/clk_counter_reg[11]/C
   -------------------------------------------------------------------    -------------------
-                         FDRE (Prop_fdre_C_Q)         0.478    48.709 r  oled_device/m_OLEDCtrl/MS_DELAY/stop_time_reg[5]/Q
-                         net (fo=1, unplaced)         0.965    49.674    oled_device/m_OLEDCtrl/MS_DELAY/stop_time[5]
-                         LUT6 (Prop_lut6_I0_O)        0.295    49.969 r  oled_device/m_OLEDCtrl/MS_DELAY/state1_carry_i_3/O
-                         net (fo=1, unplaced)         0.000    49.969    oled_device/m_OLEDCtrl/MS_DELAY/state1_carry_i_3_n_0
-                         CARRY4 (Prop_carry4_S[1]_CO[3])
-                                                      0.533    50.502 r  oled_device/m_OLEDCtrl/MS_DELAY/state1_carry/CO[3]
-                         net (fo=4, unplaced)         0.942    51.444    oled_device/m_OLEDCtrl/MS_DELAY/state10_in
-                         LUT3 (Prop_lut3_I1_O)        0.124    51.568 r  oled_device/m_OLEDCtrl/MS_DELAY/ms_counter[0]_i_1/O
-                         net (fo=12, unplaced)        0.824    52.392    oled_device/m_OLEDCtrl/MS_DELAY/ms_counter
+                         FDRE (Prop_fdre_C_Q)         0.478    48.709 f  oled_device/m_OLEDCtrl/MS_DELAY/clk_counter_reg[11]/Q
+                         net (fo=2, unplaced)         0.752    49.461    oled_device/m_OLEDCtrl/MS_DELAY/clk_counter_reg_n_0_[11]
+                         LUT4 (Prop_lut4_I1_O)        0.295    49.756 f  oled_device/m_OLEDCtrl/MS_DELAY/FSM_onehot_state[2]_i_5/O
+                         net (fo=1, unplaced)         0.449    50.205    oled_device/m_OLEDCtrl/MS_DELAY/FSM_onehot_state[2]_i_5_n_0
+                         LUT5 (Prop_lut5_I4_O)        0.124    50.329 f  oled_device/m_OLEDCtrl/MS_DELAY/FSM_onehot_state[2]_i_4/O
+                         net (fo=1, unplaced)         0.449    50.778    oled_device/m_OLEDCtrl/MS_DELAY/FSM_onehot_state[2]_i_4_n_0
+                         LUT6 (Prop_lut6_I5_O)        0.124    50.902 f  oled_device/m_OLEDCtrl/MS_DELAY/FSM_onehot_state[2]_i_2/O
+                         net (fo=21, unplaced)        0.510    51.412    oled_device/m_OLEDCtrl/MS_DELAY/FSM_onehot_state[2]_i_2_n_0
+                         LUT3 (Prop_lut3_I0_O)        0.124    51.536 r  oled_device/m_OLEDCtrl/MS_DELAY/ms_counter[0]_i_1/O
+                         net (fo=12, unplaced)        0.824    52.360    oled_device/m_OLEDCtrl/MS_DELAY/ms_counter
                          FDRE                                         r  oled_device/m_OLEDCtrl/MS_DELAY/ms_counter_reg[0]/R
   -------------------------------------------------------------------    -------------------
 
@@ -279,16 +280,16 @@ Slack (MET) :             194.848ns  (required time - arrival time)
                          net (fo=2, unplaced)         0.439   246.920    mmcm/clk_mem_clk_wiz_0
                          BUFGCTRL (Prop_bufgctrl_I0_O)
                                                       0.091   247.011 r  mmcm/clkout2_buf/O
-                         net (fo=199, unplaced)       0.439   247.450    oled_device/m_OLEDCtrl/MS_DELAY/clock_mem
+                         net (fo=215, unplaced)       0.439   247.450    oled_device/m_OLEDCtrl/MS_DELAY/clock_mem
                          FDRE                                         r  oled_device/m_OLEDCtrl/MS_DELAY/ms_counter_reg[0]/C
                          clock pessimism              0.636   248.086    
                          clock uncertainty           -0.289   247.796    
                          FDRE (Setup_fdre_C_R)       -0.557   247.239    oled_device/m_OLEDCtrl/MS_DELAY/ms_counter_reg[0]
   -------------------------------------------------------------------
                          required time                        247.239    
-                         arrival time                         -52.392    
+                         arrival time                         -52.360    
   -------------------------------------------------------------------
-                         slack                                194.848    
+                         slack                                194.880    
 
 
 
@@ -363,10 +364,10 @@ Period(ns):         200.000
 Sources:            { mmcm/mmcm_adv_inst/CLKOUT1 }
 
 Check Type        Corner  Lib Pin             Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location  Pin
-Min Period        n/a     RAMB18E1/CLKARDCLK  n/a            2.944         200.000     197.056              oled_device/m_OLEDCtrl/PIXEL_BUFFER/U0/inst_blk_mem_gen/gnbram.gnativebmg.native_blk_mem_gen/valid.cstr/ramloop[0].ram.r/prim_noinit.ram/DEVICE_7SERIES.NO_BMM_INFO.SDP.WIDE_PRIM18.ram/CLKARDCLK
+Min Period        n/a     RAMB36E1/CLKARDCLK  n/a            2.944         200.000     197.056              mem/mem_reg_0_1/CLKARDCLK
 Max Period        n/a     MMCME2_ADV/CLKOUT1  n/a            213.360       200.000     13.360               mmcm/mmcm_adv_inst/CLKOUT1
-Low Pulse Width   Fast    FDRE/C              n/a            0.500         100.000     99.500               oled_device/FSM_onehot_state_reg[0]/C
-High Pulse Width  Slow    FDRE/C              n/a            0.500         100.000     99.500               oled_device/FSM_onehot_state_reg[0]/C
+Low Pulse Width   Fast    FDRE/C              n/a            0.500         100.000     99.500               oled_device/m_OLEDCtrl/MS_DELAY/FSM_onehot_state_reg[0]/C
+High Pulse Width  Slow    FDRE/C              n/a            0.500         100.000     99.500               oled_device/m_OLEDCtrl/MS_DELAY/FSM_onehot_state_reg[0]/C
 
 
 

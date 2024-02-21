@@ -1,8 +1,8 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 --------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2020.2 (lin64) Build 3064766 Wed Nov 18 09:12:47 MST 2020
-| Date             : Wed Feb 21 11:12:09 2024
-| Host             : big23.seas.upenn.edu running 64-bit openSUSE Leap 15.5
+| Date             : Wed Feb 21 15:47:40 2024
+| Host             : big06.seas.upenn.edu running 64-bit openSUSE Leap 15.5
 | Command          : report_power -file ./vivado_output/post_route_power_report.txt
 | Design           : RiscvSystem
 | Device           : xc7z020clg484-1
@@ -30,11 +30,11 @@ Table of Contents
 ----------
 
 +--------------------------+--------------+
-| Total On-Chip Power (W)  | 0.194        |
+| Total On-Chip Power (W)  | 0.195        |
 | Design Power Budget (W)  | Unspecified* |
 | Power Budget Margin (W)  | NA           |
-| Dynamic (W)              | 0.086        |
-| Device Static (W)        | 0.107        |
+| Dynamic (W)              | 0.087        |
+| Device Static (W)        | 0.108        |
 | Effective TJA (C/W)      | 11.5         |
 | Max Ambient (C)          | 82.8         |
 | Junction Temperature (C) | 27.2         |
@@ -53,17 +53,17 @@ Table of Contents
 | On-Chip        | Power (W) | Used     | Available | Utilization (%) |
 +----------------+-----------+----------+-----------+-----------------+
 | Clocks         |    <0.001 |        5 |       --- |             --- |
-| Slice Logic    |    <0.001 |      483 |       --- |             --- |
+| Slice Logic    |    <0.001 |      486 |       --- |             --- |
 |   LUT as Logic |    <0.001 |      186 |     53200 |            0.35 |
 |   CARRY4       |    <0.001 |       15 |     13300 |            0.11 |
 |   Register     |    <0.001 |      201 |    106400 |            0.19 |
-|   Others       |     0.000 |       22 |       --- |             --- |
-| Signals        |    <0.001 |      408 |       --- |             --- |
-| Block RAM      |    <0.001 |      1.5 |       140 |            1.07 |
+|   Others       |     0.000 |       24 |       --- |             --- |
+| Signals        |    <0.001 |      435 |       --- |             --- |
+| Block RAM      |    <0.001 |      9.5 |       140 |            6.79 |
 | MMCM           |     0.086 |        1 |         4 |           25.00 |
 | I/O            |    <0.001 |       17 |       200 |            8.50 |
-| Static Power   |     0.107 |          |           |                 |
-| Total          |     0.194 |          |           |                 |
+| Static Power   |     0.108 |          |           |                 |
+| Total          |     0.195 |          |           |                 |
 +----------------+-----------+----------+-----------+-----------------+
 
 
@@ -73,7 +73,7 @@ Table of Contents
 +-----------+-------------+-----------+-------------+------------+-------------+-------------+------------+
 | Source    | Voltage (V) | Total (A) | Dynamic (A) | Static (A) | Powerup (A) | Budget (A)  | Margin (A) |
 +-----------+-------------+-----------+-------------+------------+-------------+-------------+------------+
-| Vccint    |       1.000 |     0.008 |       0.001 |      0.008 |       NA    | Unspecified | NA         |
+| Vccint    |       1.000 |     0.009 |       0.001 |      0.008 |       NA    | Unspecified | NA         |
 | Vccaux    |       1.800 |     0.058 |       0.048 |      0.010 |       NA    | Unspecified | NA         |
 | Vcco33    |       3.300 |     0.001 |       0.000 |      0.001 |       NA    | Unspecified | NA         |
 | Vcco25    |       2.500 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
@@ -151,7 +151,7 @@ Table of Contents
 +-------------+-----------+
 | Name        | Power (W) |
 +-------------+-----------+
-| RiscvSystem |     0.086 |
+| RiscvSystem |     0.087 |
 |   mmcm      |     0.086 |
 +-------------+-----------+
 

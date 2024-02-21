@@ -1,8 +1,8 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (lin64) Build 3064766 Wed Nov 18 09:12:47 MST 2020
-| Date         : Wed Feb 21 11:11:32 2024
-| Host         : big23.seas.upenn.edu running 64-bit openSUSE Leap 15.5
+| Date         : Wed Feb 21 15:47:03 2024
+| Host         : big06.seas.upenn.edu running 64-bit openSUSE Leap 15.5
 | Command      : report_utilization -file ./vivado_output/post_synth_utilization.txt
 | Design       : RiscvSystem
 | Device       : 7z020clg484-1
@@ -67,8 +67,9 @@ Table of Contents
 +-------------------+------+-------+-----------+-------+
 |     Site Type     | Used | Fixed | Available | Util% |
 +-------------------+------+-------+-----------+-------+
-| Block RAM Tile    |  1.5 |     0 |       140 |  1.07 |
-|   RAMB36/FIFO*    |    0 |     0 |       140 |  0.00 |
+| Block RAM Tile    |  9.5 |     0 |       140 |  6.79 |
+|   RAMB36/FIFO*    |    8 |     0 |       140 |  5.71 |
+|     RAMB36E1 only |    8 |       |           |       |
 |   RAMB18          |    3 |     0 |       280 |  1.07 |
 |     RAMB18E1 only |    3 |       |           |       |
 +-------------------+------+-------+-----------+-------+
@@ -150,15 +151,16 @@ Table of Contents
 |  Ref Name  | Used | Functional Category |
 +------------+------+---------------------+
 | FDRE       |  185 |        Flop & Latch |
-| LUT6       |   95 |                 LUT |
-| LUT5       |   47 |                 LUT |
-| LUT2       |   36 |                 LUT |
-| LUT3       |   30 |                 LUT |
-| LUT4       |   29 |                 LUT |
+| LUT6       |   94 |                 LUT |
+| LUT5       |   45 |                 LUT |
+| LUT4       |   36 |                 LUT |
+| LUT2       |   32 |                 LUT |
+| LUT3       |   31 |                 LUT |
 | FDCE       |   16 |        Flop & Latch |
 | CARRY4     |   15 |          CarryLogic |
 | OBUF       |   10 |                  IO |
 | LUT1       |    9 |                 LUT |
+| RAMB36E1   |    8 |        Block Memory |
 | FDSE       |    8 |        Flop & Latch |
 | OBUFT      |    4 |                  IO |
 | RAMB18E1   |    3 |        Block Memory |
