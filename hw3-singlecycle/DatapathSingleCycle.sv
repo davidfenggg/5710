@@ -232,8 +232,10 @@ module DatapathSingleCycle (
     logic [4:0] write_reg;
     logic write_enable;
 
+
   always_comb begin
     illegal_insn = 1'b0;
+    halt = 1'b0;
     case (insn_opcode)
       OpLui: begin
         rd_data = {insn_from_imem[31:12], 12'b0};
@@ -340,37 +342,37 @@ module DatapathSingleCycle (
 
         //beq
         3'b000: begin
-            pcNext = rs1_data === rs2_data ? (pcCurrent + (imm_b_sext<<1)) : pcCurrent + 4;
+            pcNext = rs1_data === rs2_data ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
             we = 1'b0;
         end
 
         //bne
         3'b001: begin
-            pcNext = rs1_data !== rs2_data ? (pcCurrent + (imm_b_sext<<1)) : pcCurrent + 4;
+            pcNext = rs1_data !== rs2_data ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
             we = 1'b0;
         end
 
         //blt
         3'b100: begin
-            pcNext = $signed(rs1_data) < $signed(rs2_data) ? (pcCurrent + (imm_b_sext<<1)) : pcCurrent + 4;
+            pcNext = $signed(rs1_data) < $signed(rs2_data) ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
             we = 1'b0;
         end
 
         //bge
         3'b101: begin
-            pcNext = $signed(rs1_data) >= $signed(rs2_data) ? (pcCurrent + (imm_b_sext<<1)) : pcCurrent + 4;
+            pcNext = $signed(rs1_data) >= $signed(rs2_data) ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
             we = 1'b0;
         end
 
         //bltu
         3'b110: begin
-            pcNext = rs1_data < rs2_data ? (pcCurrent + (imm_b_sext<<1)) : pcCurrent + 4;
+            pcNext = rs1_data < rs2_data ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
             we = 1'b0;
         end
 
         //bgeu
         3'b111: begin
-            pcNext = rs1_data >= rs2_data ? (pcCurrent + (imm_b_sext<<1)) : pcCurrent + 4;
+            pcNext = rs1_data >= rs2_data ? (pcCurrent + imm_b_sext) : pcCurrent + 4;
             we = 1'b0;
         end
 
