@@ -318,7 +318,7 @@ module DatapathSingleCycle (
           //srai
           7'b0100000: begin
             we = 1'b1;
-            rd_data = rs1_data >>> imm_i[4:0];
+            rd_data = $signed(rs1_data) >>> imm_i[4:0];
             pcNext = pcCurrent + 4;
           end
 
@@ -496,7 +496,7 @@ module DatapathSingleCycle (
       //sra
       7'b0100000: begin
         we = 1'b1;
-        rd_data = rs1_data >>> rs2_data[4:0];
+        rd_data = $signed(rs1_data) >>> rs2_data[4:0];
         pcNext = pcCurrent + 4;
       end
 
