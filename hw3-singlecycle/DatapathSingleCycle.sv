@@ -227,12 +227,23 @@ module DatapathSingleCycle (
     .sum(cla_sum)
   );
 
+  logic [`REG_SIZE] d_dividend, d_divisor, d_remainder, d_quotient;
+
+  divider_unsigned divider (
+    .i_dividend(d_dividend),
+    .i_divisor(d_divisor),
+    .o_remainder(d_remainder),
+    .o_quotient(d_quotient)
+  );
+
 
     logic [`REG_SIZE] write_data;
     logic [4:0] write_reg;
     logic write_enable;
 
-
+    logic[63:0] mul_result;
+    logic result_neg;
+  
   always_comb begin
     illegal_insn = 1'b0;
     halt = 1'b0;
@@ -398,12 +409,20 @@ module DatapathSingleCycle (
             pcNext = pcCurrent + 4;
         end
 
+
         //sub
         7'b0100000: begin
           we = 1'b1;
           cla_a = rs1_data; 
           cla_b = ~rs2_data;
           rd_data = cla_sum + 1;
+          pcNext = pcCurrent + 4;
+        end
+
+        //mul
+        7'd1: begin
+          we = 1'b1;
+          rd_data = (rs1_data * rs2_data);
           pcNext = pcCurrent + 4;
         end
 
@@ -420,6 +439,14 @@ module DatapathSingleCycle (
       7'd0: begin
         we = 1'b1;
         rd_data = rs1_data << rs2_data[4:0];
+        pcNext = pcCurrent + 4;
+      end
+
+      //mulh
+      7'd1: begin
+        we = 1'b1;
+        mul_result = ($signed(rs1_data) * $signed(rs2_data));
+        rd_data = mul_result[63:32];
         pcNext = pcCurrent + 4;
       end
 
@@ -441,6 +468,15 @@ module DatapathSingleCycle (
         pcNext = pcCurrent + 4;
       end
 
+      //mulhsu
+      7'd1: begin
+        we = 1'b1;
+        result_neg = ($signed(rs1_data) < 0) ? 1 : 0;
+        mul_result = $signed(rs1_data) * $signed({1'b0, rs2_data});
+        rd_data = mul_result[63:32];
+        pcNext = pcCurrent + 4;
+      end
+
       default: begin
           illegal_insn = 1'b1;
       end
@@ -459,6 +495,14 @@ module DatapathSingleCycle (
         pcNext = pcCurrent + 4;
       end
 
+      //mulhu
+      7'd1: begin
+        we = 1'b1;
+        mul_result = ($unsigned(rs1_data) * $unsigned(rs2_data));
+        rd_data = mul_result[63:32];
+        pcNext = pcCurrent + 4;
+      end
+
       default: begin
           illegal_insn = 1'b1;
       end
@@ -474,6 +518,23 @@ module DatapathSingleCycle (
       7'd0: begin
         we = 1'b1;
         rd_data = rs1_data ^ rs2_data;
+        pcNext = pcCurrent + 4;
+      end
+      
+      //div
+      7'd1: begin
+        we = 1'b1;
+        result_neg = ($signed(rs1_data) < 0) ^ ($signed(rs2_data) < 0);
+        d_dividend = $unsigned($signed(rs1_data) < 0 ? -rs1_data : rs1_data);
+        d_divisor = $unsigned($signed(rs2_data) < 0 ? -rs2_data : rs2_data);
+        
+        if (rs2_data == 0) begin
+            rd_data = 32'hFFFFFFFF;
+        end else if (result_neg) begin
+            rd_data = -d_quotient;
+        end else begin
+            rd_data = d_quotient;
+        end
         pcNext = pcCurrent + 4;
       end
 
@@ -502,6 +563,15 @@ module DatapathSingleCycle (
         pcNext = pcCurrent + 4;
       end
 
+      //divu
+      7'd1: begin
+        we = 1'b1;
+        d_dividend = $unsigned(rs1_data);
+        d_divisor = $unsigned(rs2_data);
+        rd_data = d_quotient;
+        pcNext = pcCurrent + 4;
+      end
+
       default: begin
           illegal_insn = 1'b1;
       end
@@ -520,6 +590,23 @@ module DatapathSingleCycle (
         pcNext = pcCurrent + 4;
       end
 
+      //rem
+      7'd1: begin
+        we = 1'b1;
+        result_neg = ($signed(rs1_data) < 0) ? 1 : 0;
+        d_dividend = $unsigned($signed(rs1_data) < 0 ? -rs1_data : rs1_data);
+        d_divisor = $unsigned($signed(rs2_data) < 0 ? -rs2_data : rs2_data);
+        
+        if (rs2_data == 0) begin
+            rd_data = $signed(rs1_data);
+        end else if (result_neg) begin
+            rd_data = -d_remainder;
+        end else begin
+            rd_data = d_remainder;
+        end
+        pcNext = pcCurrent + 4;
+      end
+
       default: begin
           illegal_insn = 1'b1;
       end
@@ -535,6 +622,15 @@ module DatapathSingleCycle (
       7'd0: begin
         we = 1'b1;
         rd_data = rs1_data & rs2_data;
+        pcNext = pcCurrent + 4;
+      end
+
+      //remu
+      7'd1: begin
+        we = 1'b1;
+        d_dividend = $unsigned(rs1_data);
+        d_divisor = $unsigned(rs2_data);
+        rd_data = d_remainder;
         pcNext = pcCurrent + 4;
       end
 
@@ -570,6 +666,94 @@ module DatapathSingleCycle (
       default: begin
         illegal_insn = 1'b1;
       end
+
+    OpAuipc: begin
+        rd_data = pcCurrent + {insn_from_imem[31:12], 12'b0};
+        we = 1'b1;
+        pcNext = pcCurrent + 4;
+      end
+
+    OpLoad: begin
+      case(insn_from_imem[14:12])
+
+      //lb
+      3'b000: begin
+        we = 1'b1; 
+        
+        addr_to_dmem = rs1_data + imm_i_sext & 32'hFFFFFFFC;
+
+        rd_data = {{24{store_data_to_dmem[7]}}, store_data_to_dmem[7:0]};
+
+        pcNext = pcCurrent + 4;
+      end
+
+      //lh
+      3'b001: begin
+      end
+
+      //lw
+      3'b010: begin
+      end
+
+      //lbu
+      3'b100: begin
+      end
+
+      //lhu
+      3'b101: begin
+      end
+      default: begin
+        illegal_insn = 1'b1;
+      end
+
+      endcase
+    end
+
+    OpStore: begin
+      case(insn_from_imem[14:12])
+
+      //sb
+      3'b000: begin
+        we = 1'b1;
+        pcNext = pcCurrent + 4;
+      end
+
+      //sh
+      3'b001: begin
+      end
+
+      //sw
+      3'b010: begin
+      end
+
+      default: begin
+        illegal_insn = 1'b1;
+      end
+
+      endcase
+
+    end
+    
+    OpJal: begin
+      we = 1'b1;
+      rd_data = pcCurrent + 4;
+      pcNext = pcCurrent + imm_j_sext;
+
+    end
+
+    OpJalr: begin
+      we = 1'b1;
+      rd_data = pcCurrent + 4;
+      pcNext = (rs1_data + imm_i_sext) & ~32'h1;
+    end
+
+
+    OpMiscMem: begin
+      //fence
+      we = 1'b0;
+    end
+
+
     endcase
   end
 

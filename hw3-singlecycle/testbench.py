@@ -281,12 +281,12 @@ if __name__ == "__main__":
 @cocotb.test()
 async def testOneRiscvTest(dut):
     "Use this to run one particular riscv test"
-    await riscvTest(dut, RISCV_TESTS_PATH / 'rv32ui-p-slti')
+    await riscvTest(dut, RISCV_TESTS_PATH / 'rv32um-p-mulhsu')
     
 @cocotb.test()
 async def testTwoRiscvTest(dut):
     "Use this to run one particular riscv test"
-    await riscvTest(dut, RISCV_TESTS_PATH / 'rv32ui-p-lui')
+    await riscvTest(dut, RISCV_TESTS_PATH / 'rv32ui-p-lb')
 
 async def riscvTest(dut, binaryPath=None):
     "Run the official RISC-V test whose binary lives at `binaryPath`"
