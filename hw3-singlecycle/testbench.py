@@ -278,10 +278,10 @@ if __name__ == "__main__":
 #     assert dut.datapath.halt.value == 1, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
 #     pass
 
-@cocotb.test()
-async def testOneRiscvTest(dut):
-    "Use this to run one particular riscv test"
-    await riscvTest(dut, RISCV_TESTS_PATH / 'rv32um-p-mulhsu')
+# @cocotb.test()
+# async def testOneRiscvTest(dut):
+#     "Use this to run one particular riscv test"
+#     await riscvTest(dut, RISCV_TESTS_PATH / 'rv32um-p-mulhsu')
     
 @cocotb.test()
 async def testTwoRiscvTest(dut):

@@ -680,9 +680,9 @@ module DatapathSingleCycle (
       3'b000: begin
         we = 1'b1; 
         
-        addr_to_dmem = rs1_data + imm_i_sext & 32'hFFFFFFFC;
+        addr_to_dmem = rs1_data + imm_i_sext;
 
-        rd_data = {{24{store_data_to_dmem[7]}}, store_data_to_dmem[7:0]};
+        rd_data = {{24{load_data_from_dmem[7]}}, load_data_from_dmem[7:0]};
 
         pcNext = pcCurrent + 4;
       end
