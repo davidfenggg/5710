@@ -702,18 +702,74 @@ module DatapathSingleCycle (
 
       //lh
       3'b001: begin
+        we = 1'b1; 
+        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        case((rs1_data + imm_i_sext << 30) >> 30)
+            32'b00: begin
+                rd_data = {{16{load_data_from_dmem[15]}}, load_data_from_dmem[15:0]};
+            end
+            32'b10: begin
+                rd_data = {{16{load_data_from_dmem[31]}}, load_data_from_dmem[31:16]};
+            end
+            default: begin
+            end
+        endcase
+        pcNext = pcCurrent + 4;
       end
 
       //lw
       3'b010: begin
+        we = 1'b1; 
+        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        case((rs1_data + imm_i_sext << 30) >> 30)
+            32'b00: begin
+                rd_data = load_data_from_dmem;
+            end
+            default: begin
+            end
+        endcase
+        pcNext = pcCurrent + 4;
       end
 
       //lbu
       3'b100: begin
+        we = 1'b1; 
+        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        case((rs1_data + imm_i_sext << 30) >> 30)
+            32'b00: begin
+                rd_data = {24'b0, load_data_from_dmem[7:0]};
+            end
+            32'b01: begin
+                rd_data = {24'b0, load_data_from_dmem[15:8]};
+            end
+            32'b10: begin
+                rd_data = {24'b0, load_data_from_dmem[23:16]};
+            end
+            32'b11: begin
+                rd_data = {24'b0, load_data_from_dmem[31:24]};
+            end
+            default: begin
+                illegal_insn = 1'b1;
+            end
+        endcase
+        pcNext = pcCurrent + 4;
       end
 
       //lhu
       3'b101: begin
+        we = 1'b1; 
+        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        case((rs1_data + imm_i_sext << 30) >> 30)
+            32'b00: begin
+                rd_data = {16'b0, load_data_from_dmem[15:0]};
+            end
+            32'b10: begin
+                rd_data = {16'b0, load_data_from_dmem[31:16]};
+            end
+            default: begin
+            end
+        endcase
+        pcNext = pcCurrent + 4;
       end
       default: begin
         illegal_insn = 1'b1;
