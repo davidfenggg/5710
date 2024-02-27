@@ -679,11 +679,24 @@ module DatapathSingleCycle (
       //lb
       3'b000: begin
         we = 1'b1; 
-        
-        addr_to_dmem = rs1_data + imm_i_sext;
-
-        rd_data = {{24{load_data_from_dmem[7]}}, load_data_from_dmem[7:0]};
-
+        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        case((rs1_data + imm_i_sext << 30) >> 30)
+            32'b00: begin
+                rd_data = {{24{load_data_from_dmem[7]}}, load_data_from_dmem[7:0]};
+            end
+            32'b01: begin
+                rd_data = {{24{load_data_from_dmem[15]}}, load_data_from_dmem[15:8]};
+            end
+            32'b10: begin
+                rd_data = {{24{load_data_from_dmem[23]}}, load_data_from_dmem[23:16]};
+            end
+            32'b11: begin
+                rd_data = {{24{load_data_from_dmem[31]}}, load_data_from_dmem[31:24]};
+            end
+            default: begin
+                illegal_insn = 1'b1;
+            end
+        endcase
         pcNext = pcCurrent + 4;
       end
 
