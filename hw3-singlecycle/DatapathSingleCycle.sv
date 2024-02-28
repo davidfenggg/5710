@@ -862,8 +862,14 @@ module DatapathSingleCycle (
 
     OpMiscMem: begin
       //fence
-      we = 1'b0;
-      pcNext = pcCurrent + 4;
+        illegal_insn = 1'b0;
+        pcNext = pcCurrent + 'd4;
+        we = 1'b0;
+        rd_data = 'd0;
+        halt = 1'b0;
+
+        store_data_to_dmem = 'd0;
+        store_we_to_dmem = 4'b0000;
     end
 
 
