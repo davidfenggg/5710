@@ -247,6 +247,7 @@ module DatapathSingleCycle (
   always_comb begin
     illegal_insn = 1'b0;
     halt = 1'b0;
+    store_we_to_dmem = 4'b0;
     case (insn_opcode)
       OpLui: begin
         rd_data = {insn_from_imem[31:12], 12'b0};
@@ -525,13 +526,13 @@ module DatapathSingleCycle (
       7'd1: begin
         we = 1'b1;
         result_neg = ($signed(rs1_data) < 0) ^ ($signed(rs2_data) < 0);
-        d_dividend = $unsigned($signed(rs1_data) < 0 ? -rs1_data : rs1_data);
-        d_divisor = $unsigned($signed(rs2_data) < 0 ? -rs2_data : rs2_data);
+        d_dividend = $unsigned($signed(rs1_data) < 0 ? (~rs1_data + 1) : rs1_data);
+        d_divisor = $unsigned($signed(rs2_data) < 0 ? (~rs2_data + 1) : rs2_data);
         
         if (rs2_data == 0) begin
             rd_data = 32'hFFFFFFFF;
         end else if (result_neg) begin
-            rd_data = -d_quotient;
+            rd_data = ~d_quotient + 1;
         end else begin
             rd_data = d_quotient;
         end
@@ -594,13 +595,13 @@ module DatapathSingleCycle (
       7'd1: begin
         we = 1'b1;
         result_neg = ($signed(rs1_data) < 0) ? 1 : 0;
-        d_dividend = $unsigned($signed(rs1_data) < 0 ? -rs1_data : rs1_data);
-        d_divisor = $unsigned($signed(rs2_data) < 0 ? -rs2_data : rs2_data);
+        d_dividend = $unsigned($signed(rs1_data) < 0 ? (~rs1_data + 1) : rs1_data);
+        d_divisor = $unsigned($signed(rs2_data) < 0 ? (~rs2_data + 1) : rs2_data);
         
         if (rs2_data == 0) begin
             rd_data = $signed(rs1_data);
         end else if (result_neg) begin
-            rd_data = -d_remainder;
+            rd_data = ~d_remainder + 1;
         end else begin
             rd_data = d_remainder;
         end
