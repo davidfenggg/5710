@@ -247,7 +247,7 @@ module DatapathSingleCycle (
   always_comb begin
     illegal_insn = 1'b0;
     halt = 1'b0;
-    assign store_we_to_dmem = 4'b0;
+    store_we_to_dmem = 4'b0;
     case (insn_opcode)
       OpLui: begin
         rd_data = {insn_from_imem[31:12], 12'b0};
