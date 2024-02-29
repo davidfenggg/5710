@@ -680,7 +680,7 @@ module DatapathSingleCycle (
       //lb
       3'b000: begin
         we = 1'b1; 
-        assign addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
         case((rs1_data + imm_i_sext << 30) >> 30)
             32'b00: begin
                 rd_data = {{24{load_data_from_dmem[7]}}, load_data_from_dmem[7:0]};
@@ -704,7 +704,7 @@ module DatapathSingleCycle (
       //lh
       3'b001: begin
         we = 1'b1; 
-        assign addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
         case((rs1_data + imm_i_sext << 30) >> 30)
             32'b00: begin
                 rd_data = {{16{load_data_from_dmem[15]}}, load_data_from_dmem[15:0]};
@@ -721,7 +721,7 @@ module DatapathSingleCycle (
       //lw
       3'b010: begin
         we = 1'b1; 
-        assign addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
         case((rs1_data + imm_i_sext << 30) >> 30)
             32'b00: begin
                 rd_data = load_data_from_dmem;
@@ -735,7 +735,7 @@ module DatapathSingleCycle (
       //lbu
       3'b100: begin
         we = 1'b1; 
-        assign addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
         case((rs1_data + imm_i_sext << 30) >> 30)
             32'b00: begin
                 rd_data = {24'b0, load_data_from_dmem[7:0]};
@@ -759,7 +759,7 @@ module DatapathSingleCycle (
       //lhu
       3'b101: begin
         we = 1'b1; 
-        assign addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
         case((rs1_data + imm_i_sext << 30) >> 30)
             32'b00: begin
                 rd_data = {16'b0, load_data_from_dmem[15:0]};
@@ -785,7 +785,7 @@ module DatapathSingleCycle (
       //sb
       3'b000: begin
         we = 1'b0;
-        assign addr_to_dmem = ((rs1_data + imm_s_sext) >> 2) << 2;
+        addr_to_dmem = ((rs1_data + imm_s_sext) >> 2) << 2;
         case(((rs1_data + imm_s_sext) << 30) >> 30)
             32'b00: begin
                 store_data_to_dmem[7:0] = rs2_data[7:0];
@@ -813,7 +813,7 @@ module DatapathSingleCycle (
       //sh
       3'b001: begin
         we = 1'b0;
-        assign addr_to_dmem = ((rs1_data + imm_s_sext) >> 2) << 2;
+        addr_to_dmem = ((rs1_data + imm_s_sext) >> 2) << 2;
         case(((rs1_data + imm_s_sext) << 30) >> 30)
             32'b00: begin
                 store_data_to_dmem[15:0] = rs2_data[15:0];
