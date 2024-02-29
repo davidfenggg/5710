@@ -789,19 +789,19 @@ module DatapathSingleCycle (
         case(((rs1_data + imm_s_sext) << 30) >> 30)
             32'b00: begin
                 store_data_to_dmem[7:0] = rs2_data[7:0];
-                assign store_we_to_dmem = 4'b0001;
+                store_we_to_dmem = 4'b0001;
             end
             32'b01: begin
                 store_data_to_dmem[15:8] = rs2_data[7:0];
-                assign store_we_to_dmem = 4'b0010;
+                store_we_to_dmem = 4'b0010;
             end
             32'b10: begin
                 store_data_to_dmem[23:16] = rs2_data[7:0];
-                assign store_we_to_dmem = 4'b0100;
+                store_we_to_dmem = 4'b0100;
             end
             32'b11: begin
                 store_data_to_dmem[31:24] = rs2_data[7:0];
-                assign store_we_to_dmem = 4'b1000;
+                store_we_to_dmem = 4'b1000;
             end
             default: begin
                 illegal_insn = 1'b1;
@@ -817,11 +817,11 @@ module DatapathSingleCycle (
         case(((rs1_data + imm_s_sext) << 30) >> 30)
             32'b00: begin
                 store_data_to_dmem[15:0] = rs2_data[15:0];
-                assign store_we_to_dmem = 4'b0011;
+                store_we_to_dmem = 4'b0011;
             end
             32'b10: begin
                 store_data_to_dmem[31:16] = rs2_data[15:0];
-                assign store_we_to_dmem = 4'b1100;
+                store_we_to_dmem = 4'b1100;
             end
             default: begin
                 illegal_insn = 1'b1;
