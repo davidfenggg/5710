@@ -247,7 +247,7 @@ module DatapathSingleCycle (
   always_comb begin
     illegal_insn = 1'b0;
     halt = 1'b0;
-    store_we_to_dmem = 4'b0;
+    assign store_we_to_dmem = 4'b0;
     case (insn_opcode)
       OpLui: begin
         rd_data = {insn_from_imem[31:12], 12'b0};
@@ -680,7 +680,7 @@ module DatapathSingleCycle (
       //lb
       3'b000: begin
         we = 1'b1; 
-        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        assign addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
         case((rs1_data + imm_i_sext << 30) >> 30)
             32'b00: begin
                 rd_data = {{24{load_data_from_dmem[7]}}, load_data_from_dmem[7:0]};
@@ -704,7 +704,7 @@ module DatapathSingleCycle (
       //lh
       3'b001: begin
         we = 1'b1; 
-        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        assign addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
         case((rs1_data + imm_i_sext << 30) >> 30)
             32'b00: begin
                 rd_data = {{16{load_data_from_dmem[15]}}, load_data_from_dmem[15:0]};
@@ -721,7 +721,7 @@ module DatapathSingleCycle (
       //lw
       3'b010: begin
         we = 1'b1; 
-        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        assign addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
         case((rs1_data + imm_i_sext << 30) >> 30)
             32'b00: begin
                 rd_data = load_data_from_dmem;
@@ -735,7 +735,7 @@ module DatapathSingleCycle (
       //lbu
       3'b100: begin
         we = 1'b1; 
-        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        assign addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
         case((rs1_data + imm_i_sext << 30) >> 30)
             32'b00: begin
                 rd_data = {24'b0, load_data_from_dmem[7:0]};
@@ -759,7 +759,7 @@ module DatapathSingleCycle (
       //lhu
       3'b101: begin
         we = 1'b1; 
-        addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
+        assign addr_to_dmem = ((rs1_data + imm_i_sext) >> 2) << 2;
         case((rs1_data + imm_i_sext << 30) >> 30)
             32'b00: begin
                 rd_data = {16'b0, load_data_from_dmem[15:0]};
@@ -785,23 +785,23 @@ module DatapathSingleCycle (
       //sb
       3'b000: begin
         we = 1'b0;
-        addr_to_dmem = ((rs1_data + imm_s_sext) >> 2) << 2;
+        assign addr_to_dmem = ((rs1_data + imm_s_sext) >> 2) << 2;
         case(((rs1_data + imm_s_sext) << 30) >> 30)
             32'b00: begin
-                store_data_to_dmem[7:0] = rs2_data[7:0];
-                store_we_to_dmem = 4'b0001;
+                assign store_data_to_dmem[7:0] = rs2_data[7:0];
+                assign store_we_to_dmem = 4'b0001;
             end
             32'b01: begin
-                store_data_to_dmem[15:8] = rs2_data[7:0];
-                store_we_to_dmem = 4'b0010;
+                assign store_data_to_dmem[15:8] = rs2_data[7:0];
+                assign store_we_to_dmem = 4'b0010;
             end
             32'b10: begin
-                store_data_to_dmem[23:16] = rs2_data[7:0];
-                store_we_to_dmem = 4'b0100;
+                assign store_data_to_dmem[23:16] = rs2_data[7:0];
+                assign store_we_to_dmem = 4'b0100;
             end
             32'b11: begin
-                store_data_to_dmem[31:24] = rs2_data[7:0];
-                store_we_to_dmem = 4'b1000;
+                assign store_data_to_dmem[31:24] = rs2_data[7:0];
+                assign store_we_to_dmem = 4'b1000;
             end
             default: begin
                 illegal_insn = 1'b1;
@@ -813,15 +813,15 @@ module DatapathSingleCycle (
       //sh
       3'b001: begin
         we = 1'b0;
-        addr_to_dmem = ((rs1_data + imm_s_sext) >> 2) << 2;
+        assign addr_to_dmem = ((rs1_data + imm_s_sext) >> 2) << 2;
         case(((rs1_data + imm_s_sext) << 30) >> 30)
             32'b00: begin
-                store_data_to_dmem[15:0] = rs2_data[15:0];
-                store_we_to_dmem = 4'b0011;
+                assign store_data_to_dmem[15:0] = rs2_data[15:0];
+                assign store_we_to_dmem = 4'b0011;
             end
             32'b10: begin
-                store_data_to_dmem[31:16] = rs2_data[15:0];
-                store_we_to_dmem = 4'b1100;
+                assign store_data_to_dmem[31:16] = rs2_data[15:0];
+                assign store_we_to_dmem = 4'b1100;
             end
             default: begin
                 illegal_insn = 1'b1;
