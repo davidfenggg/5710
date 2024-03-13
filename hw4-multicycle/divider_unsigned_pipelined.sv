@@ -11,8 +11,39 @@ module divider_unsigned_pipelined (
     output wire [31:0] o_remainder,
     output wire [31:0] o_quotient
 );
+// should be something like this except we need to for loop 16 times twice
+    // Instantiate pipeline registers
+    reg [31:0] remainder_stage1;
+    reg [31:0] quotient_stage1;
+    reg [31:0] dividend_stage2;
+    reg [31:0] remainder_stage2;
+    reg [31:0] quotient_stage2;
 
-    // TODO: your code here
+    // Instantiate first stage divider module
+    divu_1iter stage1 (
+        .i_dividend(i_dividend),
+        .i_divisor(i_divisor),
+        .i_remainder(32'b0),  // No remainder input for first stage
+        .i_quotient(32'b0),   // No quotient input for first stage
+        .o_dividend(dividend_stage2),
+        .o_remainder(remainder_stage1),
+        .o_quotient(quotient_stage1)
+    );
+
+    // Instantiate second stage divider module
+    divu_1iter stage2 (
+        .i_dividend(dividend_stage2),
+        .i_divisor(i_divisor),
+        .i_remainder(remainder_stage1),
+        .i_quotient(quotient_stage1),
+        .o_dividend(i_dividend),  // No output needed for the second stage
+        .o_remainder(remainder_stage2),
+        .o_quotient(quotient_stage2)
+    );
+
+    // Output signals from second stage
+    assign o_remainder = remainder_stage2;
+    assign o_quotient = quotient_stage2;
 
 endmodule
 
