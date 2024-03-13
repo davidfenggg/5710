@@ -27,6 +27,17 @@ module divu_1iter (
     output wire [31:0] o_quotient
 );
 
-  // TODO: copy your code from HW2A here
+    wire[31:0] shifted_remainder = (i_remainder << 1) | ((i_dividend >> 31) & 32'b1);
+
+    //if remainder < divisor, then quotient = (quotient << 1)
+    //else remainder = remainder - divisor
+    assign o_remainder = (shifted_remainder < i_divisor) ? shifted_remainder : shifted_remainder - i_divisor;
+    
+    //if remainder < divisor, then quotient = (quotient << 1)
+    //else quotient = (quotient << 1) | 0x1
+    assign o_quotient = (shifted_remainder < i_divisor) ? (i_quotient << 1) : ((i_quotient << 1) | 32'b1);
+    
+    //update dividend 
+    assign o_dividend = i_dividend << 1;
 
 endmodule
