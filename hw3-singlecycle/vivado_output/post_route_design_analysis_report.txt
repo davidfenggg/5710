@@ -1,8 +1,8 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (lin64) Build 3064766 Wed Nov 18 09:12:47 MST 2020
-| Date         : Wed Feb 21 15:47:41 2024
-| Host         : big06.seas.upenn.edu running 64-bit openSUSE Leap 15.5
+| Date         : Thu Feb 29 17:46:01 2024
+| Host         : big14.seas.upenn.edu running 64-bit openSUSE Leap 15.5
 | Command      : report_design_analysis -file ./vivado_output/post_route_design_analysis_report.txt
 | Design       : RiscvSystem
 | Device       : xc7z020
@@ -22,48 +22,48 @@ Table of Contents
 1. Setup Path Characteristics 1-1
 ---------------------------------
 
-+---------------------------+-------------------------------------------------------+
-|      Characteristics      |                        Path #1                        |
-+---------------------------+-------------------------------------------------------+
-| Requirement               | 200.000                                               |
-| Path Delay                | 6.675                                                 |
-| Logic Delay               | 1.278(20%)                                            |
-| Net Delay                 | 5.397(80%)                                            |
-| Clock Skew                | -0.137                                                |
-| Slack                     | 192.491                                               |
-| Clock Relationship        | Safely Timed                                          |
-| Logic Levels              | 4                                                     |
-| Routes                    | 5                                                     |
-| Logical Path              | FDRE-(11)-LUT4-(23)-LUT5-(15)-LUT4-(14)-LUT5-(4)-FDRE |
-| Start Point Clock         | clk_mem_clk_wiz_0                                     |
-| End Point Clock           | clk_mem_clk_wiz_0                                     |
-| DSP Block                 | None                                                  |
-| BRAM                      | None                                                  |
-| IO Crossings              | 0                                                     |
-| Config Crossings          | 0                                                     |
-| SLR Crossings             | 0                                                     |
-| PBlocks                   | 0                                                     |
-| High Fanout               | 23                                                    |
-| Dont Touch                | 0                                                     |
-| Mark Debug                | 0                                                     |
-| Start Point Pin Primitive | FDRE/C                                                |
-| End Point Pin Primitive   | FDRE/CE                                               |
-| Start Point Pin           | state_reg[6]/C                                        |
-| End Point Pin             | write_byte_count_reg[0]/CE                            |
-+---------------------------+-------------------------------------------------------+
++---------------------------+-----------------------------------------------------+
+|      Characteristics      |                       Path #1                       |
++---------------------------+-----------------------------------------------------+
+| Requirement               | 100.000                                             |
+| Path Delay                | 7.225                                               |
+| Logic Delay               | 3.479(49%)                                          |
+| Net Delay                 | 3.746(51%)                                          |
+| Clock Skew                | 0.027                                               |
+| Slack                     | 92.069                                              |
+| Clock Relationship        | Safely Timed                                        |
+| Logic Levels              | 3                                                   |
+| Routes                    | 4                                                   |
+| Logical Path              | RAMB36E1-(2)-CARRY4-(10)-LUT5-(2)-LUT6-(2)-RAMB36E1 |
+| Start Point Clock         | clk_mem_clk_wiz_0                                   |
+| End Point Clock           | clk_mem_clk_wiz_0                                   |
+| DSP Block                 | None                                                |
+| BRAM                      | Input                                               |
+| IO Crossings              | 0                                                   |
+| Config Crossings          | 0                                                   |
+| SLR Crossings             | 0                                                   |
+| PBlocks                   | 0                                                   |
+| High Fanout               | 10                                                  |
+| Dont Touch                | 0                                                   |
+| Mark Debug                | 0                                                   |
+| Start Point Pin Primitive | RAMB36E1/CLKBWRCLK                                  |
+| End Point Pin Primitive   | RAMB36E1/ENARDEN                                    |
+| Start Point Pin           | mem_reg_0_1/CLKBWRCLK                               |
+| End Point Pin             | mem_reg_2_1/ENARDEN                                 |
++---------------------------+-----------------------------------------------------+
 * Bounding box calculated as % of dimensions for the target device (308, 299)
 
 
 2. Logic Level Distribution
 ---------------------------
 
-+-------------------+-------------+-----+-----+-----+----+----+---+
-|  End Point Clock  | Requirement |  0  |  1  |  2  |  3 |  4 | 5 |
-+-------------------+-------------+-----+-----+-----+----+----+---+
-| clk_mem_clk_wiz_0 | 200.000ns   | 101 | 102 | 109 | 63 | 60 | 9 |
-+-------------------+-------------+-----+-----+-----+----+----+---+
++-------------------+-------------+-----+----+-----+-----+----+----+
+|  End Point Clock  | Requirement |  0  |  1 |  2  |  3  |  4 |  5 |
++-------------------+-------------+-----+----+-----+-----+----+----+
+| clk_mem_clk_wiz_0 | 100.000ns   | 101 | 95 | 128 | 117 | 26 | 10 |
++-------------------+-------------+-----+----+-----+-----+----+----+
 * Columns represent the logic levels per end point clock
-** Distribution is for top worst 444 paths
+** Distribution is for top worst 477 paths
 
 
 3. Placer Final Level Congestion Reporting
@@ -81,8 +81,7 @@ Table of Contents
 +-----------+------+-------+------------------+--------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+------------+
 | Direction | Type | Level | Percentage Tiles | Window | Combined LUTs | Avg LUT Input | LUT | LUTRAM | Flop | MUXF | RAMB | DSP | CARRY | SRL | Cell Names |
 +-----------+------+-------+------------------+--------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+------------+
-* No router congested regions found.
-** No initial estimated congestion windows are found above level 5
+* No initial estimated congestion windows are found above level 5
 
 
 5. SLR Net Crossing Reporting
