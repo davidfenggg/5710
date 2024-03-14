@@ -27,7 +27,26 @@ module RegFile (
     input logic rst
 );
 
-  // TODO: copy your HW3B code here
+  localparam int NumRegs = 32;
+  logic [`REG_SIZE] regs[NumRegs];
+
+  assign regs[0] = 32'd0;
+
+  assign rs1_data = regs[rs1];
+  assign rs2_data = regs[rs2];
+
+  genvar i;
+  for (i = 1; i < 32; i = i + 1) begin 
+    always_ff @( posedge clk ) begin
+      if (rst) begin
+        regs[i] <= 32'd0;
+      end else begin
+        if (we && rd == i) begin
+          regs[i] <= rd_data;
+        end
+      end
+    end
+  end
 
 endmodule
 
@@ -43,6 +62,7 @@ module DatapathMultiCycle (
     output logic [`REG_SIZE] store_data_to_dmem,
     output logic [3:0] store_we_to_dmem
 );
+
 
   // TODO: your code here (largely based on HW3B)
 

@@ -55,22 +55,20 @@ module divider_unsigned_pipelined (
         end
     endgenerate
 
+    logic [31:0] lo_remainder, lo_quotient;
     always @(posedge clk) begin
         if (rst) begin
-            final_remainder <= 0;
-            final_quotient <= 0;
+            lo_remainder <= 0;
+            lo_quotient <= 0;
         end else begin
-            final_remainder <= remainder_wires[32];
-            final_quotient <= quotient_wires[32];
+            lo_remainder <= remainder_wires[32];
+            lo_quotient <= quotient_wires[32];
         end
     end
 
-    assign o_remainder = final_remainder;
-    assign o_quotient = final_quotient;
-
     // // Output signals from second stage
-    // assign o_remainder = remainder_wires[32];
-    // assign o_quotient = quotient_wires[32];
+    assign o_remainder = lo_remainder;
+    assign o_quotient = lo_quotient;
 
 endmodule
 
