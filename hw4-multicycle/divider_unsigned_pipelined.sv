@@ -1,4 +1,6 @@
 /* INSERT NAME AND PENNKEY HERE */
+// David Feng: dfenggg
+// Victoria Zammit: vzammit
 
 `timescale 1ns / 1ns
 
@@ -12,38 +14,50 @@ module divider_unsigned_pipelined (
     output wire [31:0] o_quotient
 );
 // should be something like this except we need to for loop 16 times twice
-    // Instantiate pipeline registers
-    reg [31:0] remainder_stage1;
-    reg [31:0] quotient_stage1;
-    reg [31:0] dividend_stage2;
-    reg [31:0] remainder_stage2;
-    reg [31:0] quotient_stage2;
 
-    // Instantiate first stage divider module
-    divu_1iter stage1 (
-        .i_dividend(i_dividend),
-        .i_divisor(i_divisor),
-        .i_remainder(32'b0),  // No remainder input for first stage
-        .i_quotient(32'b0),   // No quotient input for first stage
-        .o_dividend(dividend_stage2),
-        .o_remainder(remainder_stage1),
-        .o_quotient(quotient_stage1)
-    );
+    wire [31:0] remainder_wires[0:32]; 
+    wire [31:0] quotient_wires[0:32];  
+    wire [31:0] dividend_wires[0:32];
 
-    // Instantiate second stage divider module
-    divu_1iter stage2 (
-        .i_dividend(dividend_stage2),
-        .i_divisor(i_divisor),
-        .i_remainder(remainder_stage1),
-        .i_quotient(quotient_stage1),
-        .o_dividend(i_dividend),  // No output needed for the second stage
-        .o_remainder(remainder_stage2),
-        .o_quotient(quotient_stage2)
-    );
+    assign remainder_wires[0] = 0;
+    assign quotient_wires[0] = 0;
+    assign dividend_wires[0] = i_dividend;
+
+    // first stage of pipeline
+    genvar j;
+    generate
+        for (j = 0; j < 16; j++) begin : divu_iter
+            divu_1iter div_step(
+                .i_dividend(dividend_wires[j]), 
+                .i_divisor(i_divisor),
+                .i_remainder(remainder_wires[j]),
+                .i_quotient(quotient_wires[j]),
+                .o_dividend(dividend_wires[j+1]),
+                .o_remainder(remainder_wires[j + 1]),
+                .o_quotient(quotient_wires[j + 1])
+            );
+        end
+    endgenerate
+
+    // second stage of pipeline
+    genvar i;
+    generate
+        for (i = 16; i < 32; i++) begin : divu_iter
+            divu_1iter div_step(
+                .i_dividend(dividend_wires[i]), 
+                .i_divisor(i_divisor),
+                .i_remainder(remainder_wires[i]),
+                .i_quotient(quotient_wires[i]),
+                .o_dividend(dividend_wires[i+1]),
+                .o_remainder(remainder_wires[i + 1]),
+                .o_quotient(quotient_wires[i + 1])
+            );
+        end
+    endgenerate
 
     // Output signals from second stage
-    assign o_remainder = remainder_stage2;
-    assign o_quotient = quotient_stage2;
+    assign o_remainder = remainder_wires[32];
+    assign o_quotient = quotient_wires[32];
 
 endmodule
 
