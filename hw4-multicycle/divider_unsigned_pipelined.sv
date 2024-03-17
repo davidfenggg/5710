@@ -42,7 +42,7 @@ module divider_unsigned_pipelined (
     // second stage of pipeline
     genvar i;
     generate
-        for (i = 16; i < 32; i++) begin : divu_iter
+        for (i = 16; i < 32; i++) begin : divu_iter2
             divu_1iter div_step(
                 .i_dividend(dividend_wires[i]), 
                 .i_divisor(i_divisor),
