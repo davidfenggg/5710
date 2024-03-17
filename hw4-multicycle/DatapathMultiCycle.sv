@@ -186,10 +186,20 @@ module DatapathMultiCycle (
 
   // program counter
   logic [`REG_SIZE] pcNext, pcCurrent;
+  logic div_run, div1_busy, div2_busy;
+  assign div_run = insn_div || insn_divu || insn_rem || insn_remu;
+  assign div1_busy = div_run && !div2_busy;
+  always @(posedge clk) begin
+    if (rst) begin
+      div2_busy <= 0;
+    end else begin
+      div2_busy <= div1_busy && !div2_busy;
+    end
+  end
   always @(posedge clk) begin
     if (rst) begin
       pcCurrent <= 32'd0;
-    end else begin
+    end else if (!div1_busy) begin
       pcCurrent <= pcNext;
     end
   end
@@ -245,13 +255,15 @@ module DatapathMultiCycle (
     .o_quotient(d_quotient)
   );
 
-
     logic [`REG_SIZE] write_data;
     logic [4:0] write_reg;
     logic write_enable;
 
     logic[63:0] mul_result;
     logic result_neg;
+
+    //pipelining impl
+    logic div_multi_cycle_op;
   
   always_comb begin
     illegal_insn = 1'b0;
@@ -533,7 +545,7 @@ module DatapathMultiCycle (
       
       //div
       7'd1: begin
-        we = 1'b1;
+        we = 1'b1 & (!div1_busy);
         result_neg = ($signed(rs1_data) < 0) ^ ($signed(rs2_data) < 0);
         d_dividend = $unsigned($signed(rs1_data) < 0 ? (~rs1_data + 1) : rs1_data);
         d_divisor = $unsigned($signed(rs2_data) < 0 ? (~rs2_data + 1) : rs2_data);
@@ -575,7 +587,7 @@ module DatapathMultiCycle (
 
       //divu
       7'd1: begin
-        we = 1'b1;
+        we = 1'b1 & (!div1_busy);
         d_dividend = $unsigned(rs1_data);
         d_divisor = $unsigned(rs2_data);
         rd_data = d_quotient;
@@ -602,7 +614,7 @@ module DatapathMultiCycle (
 
       //rem
       7'd1: begin
-        we = 1'b1;
+        we = 1'b1 & (!div1_busy);
         result_neg = ($signed(rs1_data) < 0) ? 1 : 0;
         d_dividend = $unsigned($signed(rs1_data) < 0 ? (~rs1_data + 1) : rs1_data);
         d_divisor = $unsigned($signed(rs2_data) < 0 ? (~rs2_data + 1) : rs2_data);
@@ -637,7 +649,7 @@ module DatapathMultiCycle (
 
       //remu
       7'd1: begin
-        we = 1'b1;
+        we = 1'b1 & (!div1_busy);
         d_dividend = $unsigned(rs1_data);
         d_divisor = $unsigned(rs2_data);
         rd_data = d_remainder;
