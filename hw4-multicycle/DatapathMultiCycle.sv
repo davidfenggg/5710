@@ -171,7 +171,6 @@ module DatapathMultiCycle (
 
   // synthesis translate_off
   // this code is only for simulation, not synthesis
-  `include "RvDisassembler.sv"
   string disasm_string;
   always_comb begin
     disasm_string = rv_disasm(insn_from_imem);
