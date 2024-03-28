@@ -111,6 +111,35 @@ typedef struct packed {
   cycle_status_e cycle_status;
 } stage_decode_t;
 
+/** state at the start of Execute stage */
+typedef struct packed {
+  logic [`REG_SIZE] pc;
+  logic [`INSN_SIZE] insn;
+  logic [`REG_SIZE] rs1_data, rs2_data;
+  logic [46:0] insn_one_hot;
+  cycle_status_e cycle_status;
+} stage_execute_t;
+
+/** state at the start of Memory stage */
+typedef struct packed {
+  logic [`REG_SIZE] pc;
+  logic [`REG_SIZE] rd_data; // for store instructions
+  logic [4:0] we; // write enable for mem
+  logic //memory address
+  //store data to dmem
+
+  cycle_status_e cycle_status;
+} stage_memory_t;
+
+/** state at the start of Write-back stage */
+typedef struct packed {
+  logic [`REG_SIZE] pc;
+  logic [`REG_SIZE] write_data;
+  logic [4:0] rd; / destination register index for write-back --> DO WE NEED THIS?
+  cycle_status_e cycle_status;
+} stage_writeback_t;
+
+
 
 module DatapathPipelined (
     input wire clk,
@@ -223,7 +252,7 @@ module DatapathPipelined (
       .disasm(d_disasm)
   );
 
-   // components of the instruction
+  // components of the instruction
   wire [6:0] insn_funct7;
   wire [4:0] insn_rs2;
   wire [4:0] insn_rs1;
@@ -320,6 +349,7 @@ module DatapathPipelined (
 
   // TODO: your code here, though you will also need to modify some of the code above -- this seems to mean branch in the if-else
   // TODO: the testbench requires that your register file instance is named `rf`
+  
   logic illegal_insn;
   logic [`REG_SIZE] rd_data, rs1_data, rs2_data;
   logic we;
@@ -341,6 +371,35 @@ module DatapathPipelined (
   /*                   EXECUTE STAGE                   */
   /*****************************************************/
 
+  //need struct packed: pc, insn, rs1, rs2 --> or can just access reg file to get these? 
+  //is there a better way to do this? 
+  stage_execute_t execute_state;
+  always_ff @(posedge clk) begin
+    if (rst) begin
+      execute_state <= '{
+        pc: 0,
+        insn: 0,
+        rs1_data: 0,
+        rs2_data: 0,
+        insn_one_hot: 0,
+        cycle_status: CYCLE_RESET
+      };
+    end else begin
+      begin
+        execute_state <= '{
+          pc: decode_state.pc,
+          insn: decode_state.insn,
+          rs1_data: ,
+          rs2_data: ,
+          insn_one_hot: insn_one_hot,
+          cycle_status: f_cycle_status
+        };
+      end
+    end
+  end
+
+
+  //pass in everything from the struct? 
 
   // setup for I, S, B & J type instructions
   // I - short immediates and loads
