@@ -330,12 +330,12 @@ module DatapathPipelined (
   // 46
 
   // TODO: need to propagate what insturction was sent (maybe through one hot?)
-  wire [46:0] insn_one_hot = {d_insn_lui, d_insn_auipc, d_insn_jal, d_insn_jalr, d_insn_beq, d_insn_bne, d_insn_blt, 
+  wire [46:0] insn_one_hot = {d_insn_fence, d_insn_lui, d_insn_auipc, d_insn_jal, d_insn_jalr, d_insn_beq, d_insn_bne, d_insn_blt, 
   d_insn_bge, d_insn_bltu, d_insn_bgeu, d_insn_lb, d_insn_lh, d_insn_lw, d_insn_lbu, d_insn_lhu, d_insn_sb, d_insn_sh, 
   d_insn_sw, d_insn_addi, d_insn_slti, d_insn_sltiu, d_insn_xori, d_insn_ori, d_insn_andi, d_insn_slli, d_insn_srli, 
   d_insn_srai, d_insn_add, d_insn_sub, d_insn_sll, d_insn_slt, d_insn_sltu, d_insn_xor, d_insn_srl, d_insn_sra, d_insn_or, 
   d_insn_and, d_insn_mul, d_insn_mulh, d_insn_mulhsu, d_insn_mulhu, d_insn_div, d_insn_divu, d_insn_rem, d_insn_remu, 
-  d_insn_ecall, d_insn_fence};
+  d_insn_ecall};
 
   // TODO: Decode the registers that are being used? (rd, rs1, rs2)
 
@@ -368,6 +368,10 @@ module DatapathPipelined (
     halt = 1'b0;
     store_we_to_dmem = 4'b0;
     case (insn_one_hot)
+      // fence
+      64'h400000000000: begin
+        
+      end
       // lui
       64'h200000000000: begin
         
@@ -537,19 +541,19 @@ module DatapathPipelined (
         
       end
       // divu
-      64'h80: begin
+      64'h8: begin
         
       end
       // rem
-      64'h40: begin
+      64'h4: begin
         
       end
       // remu
-      64'h20: begin
+      64'h2: begin
         
       end
-      // div
-      64'h10: begin
+      // ecall
+      64'h1: begin
         
       end
     endcase
