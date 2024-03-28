@@ -255,39 +255,52 @@ module DatapathPipelined (
   wire [`REG_SIZE] imm_b_sext = {{19{imm_b[12]}}, imm_b[12:0]};
   wire [`REG_SIZE] imm_j_sext = {{11{imm_j[20]}}, imm_j[20:0]};
 
+  // 0 
   wire insn_lui = insn_opcode == OpLui;
   wire insn_auipc = insn_opcode == OpAuipc;
   wire insn_jal = insn_opcode == OpJal;
   wire insn_jalr = insn_opcode == OpJalr;
+  // 3
 
+  // 4
   wire insn_beq = insn_opcode == OpBranch && insn_from_imem[14:12] == 3'b000;
   wire insn_bne = insn_opcode == OpBranch && insn_from_imem[14:12] == 3'b001;
   wire insn_blt = insn_opcode == OpBranch && insn_from_imem[14:12] == 3'b100;
   wire insn_bge = insn_opcode == OpBranch && insn_from_imem[14:12] == 3'b101;
   wire insn_bltu = insn_opcode == OpBranch && insn_from_imem[14:12] == 3'b110;
   wire insn_bgeu = insn_opcode == OpBranch && insn_from_imem[14:12] == 3'b111;
+  // 9
 
+  // 10
   wire insn_lb = insn_opcode == OpLoad && insn_from_imem[14:12] == 3'b000;
   wire insn_lh = insn_opcode == OpLoad && insn_from_imem[14:12] == 3'b001;
   wire insn_lw = insn_opcode == OpLoad && insn_from_imem[14:12] == 3'b010;
   wire insn_lbu = insn_opcode == OpLoad && insn_from_imem[14:12] == 3'b100;
   wire insn_lhu = insn_opcode == OpLoad && insn_from_imem[14:12] == 3'b101;
+  // 14
 
+  // 15
   wire insn_sb = insn_opcode == OpStore && insn_from_imem[14:12] == 3'b000;
   wire insn_sh = insn_opcode == OpStore && insn_from_imem[14:12] == 3'b001;
   wire insn_sw = insn_opcode == OpStore && insn_from_imem[14:12] == 3'b010;
+  // 17
 
+  // 18
   wire insn_addi = insn_opcode == OpRegImm && insn_from_imem[14:12] == 3'b000;
   wire insn_slti = insn_opcode == OpRegImm && insn_from_imem[14:12] == 3'b010;
   wire insn_sltiu = insn_opcode == OpRegImm && insn_from_imem[14:12] == 3'b011;
   wire insn_xori = insn_opcode == OpRegImm && insn_from_imem[14:12] == 3'b100;
   wire insn_ori = insn_opcode == OpRegImm && insn_from_imem[14:12] == 3'b110;
   wire insn_andi = insn_opcode == OpRegImm && insn_from_imem[14:12] == 3'b111;
+  // 23
 
+  // 24
   wire insn_slli = insn_opcode == OpRegImm && insn_from_imem[14:12] == 3'b001 && insn_from_imem[31:25] == 7'd0;
   wire insn_srli = insn_opcode == OpRegImm && insn_from_imem[14:12] == 3'b101 && insn_from_imem[31:25] == 7'd0;
   wire insn_srai = insn_opcode == OpRegImm && insn_from_imem[14:12] == 3'b101 && insn_from_imem[31:25] == 7'b0100000;
+  // 26
 
+  // 27
   wire insn_add = insn_opcode == OpRegReg && insn_from_imem[14:12] == 3'b000 && insn_from_imem[31:25] == 7'd0;
   wire insn_sub  = insn_opcode == OpRegReg && insn_from_imem[14:12] == 3'b000 && insn_from_imem[31:25] == 7'b0100000;
   wire insn_sll = insn_opcode == OpRegReg && insn_from_imem[14:12] == 3'b001 && insn_from_imem[31:25] == 7'd0;
@@ -298,7 +311,9 @@ module DatapathPipelined (
   wire insn_sra  = insn_opcode == OpRegReg && insn_from_imem[14:12] == 3'b101 && insn_from_imem[31:25] == 7'b0100000;
   wire insn_or = insn_opcode == OpRegReg && insn_from_imem[14:12] == 3'b110 && insn_from_imem[31:25] == 7'd0;
   wire insn_and = insn_opcode == OpRegReg && insn_from_imem[14:12] == 3'b111 && insn_from_imem[31:25] == 7'd0;
+  // 36
 
+  // 37
   wire insn_mul    = insn_opcode == OpRegReg && insn_from_imem[31:25] == 7'd1 && insn_from_imem[14:12] == 3'b000;
   wire insn_mulh   = insn_opcode == OpRegReg && insn_from_imem[31:25] == 7'd1 && insn_from_imem[14:12] == 3'b001;
   wire insn_mulhsu = insn_opcode == OpRegReg && insn_from_imem[31:25] == 7'd1 && insn_from_imem[14:12] == 3'b010;
@@ -306,12 +321,23 @@ module DatapathPipelined (
   wire insn_div    = insn_opcode == OpRegReg && insn_from_imem[31:25] == 7'd1 && insn_from_imem[14:12] == 3'b100;
   wire insn_divu   = insn_opcode == OpRegReg && insn_from_imem[31:25] == 7'd1 && insn_from_imem[14:12] == 3'b101;
   wire insn_rem    = insn_opcode == OpRegReg && insn_from_imem[31:25] == 7'd1 && insn_from_imem[14:12] == 3'b110;
-  wire insn_remu   = insn_opcode == OpRegReg && insn_from_imem[31:25] == 7'd1 && insn_from_imem[14:12] == 3'b111;
+  wire insn_remu   = insn_opcode == OpRegReg && insn_from_imem[31:25] == 7'd1 && insn_from_imem[14:12] == 3'b111;'
+  // 44
 
+  // 45
   wire insn_ecall = insn_opcode == OpEnviron && insn_from_imem[31:7] == 25'd0;
   wire insn_fence = insn_opcode == OpMiscMem;
+  // 46
 
   // TODO: need to propagate what insturction was sent (maybe through one hot?)
+  wire [46:0] insn_one_hot = {d_insn_lui, d_insn_auipc, d_insn_jal, d_insn_jalr, d_insn_beq, d_insn_bne, d_insn_blt, 
+  d_insn_bge, d_insn_bltu, d_insn_bgeu, d_insn_lb, d_insn_lh, d_insn_lw, d_insn_lbu, d_insn_lhu, d_insn_sb, d_insn_sh, 
+  d_insn_sw, d_insn_addi, d_insn_slti, d_insn_sltiu, d_insn_xori, d_insn_ori, d_insn_andi, d_insn_slli, d_insn_srli, 
+  d_insn_srai, d_insn_add, d_insn_sub, d_insn_sll, d_insn_slt, d_insn_sltu, d_insn_xor, d_insn_srl, d_insn_sra, d_insn_or, 
+  d_insn_and, d_insn_mul, d_insn_mulh, d_insn_mulhsu, d_insn_mulhu, d_insn_div, d_insn_divu, d_insn_rem, d_insn_remu, 
+  d_insn_ecall, d_insn_fence};
+
+  // TODO: Decode the registers that are being used? (rd, rs1, rs2)
 
   // TODO: your code here, though you will also need to modify some of the code above -- this seems to mean branch in the if-else
   // TODO: the testbench requires that your register file instance is named `rf`
@@ -336,6 +362,198 @@ module DatapathPipelined (
   /*                   EXECUTE STAGE                   */
   /*****************************************************/
 
+  // TODO: Change this much of it is copied over
+  always_comb begin
+    illegal_insn = 1'b0;
+    halt = 1'b0;
+    store_we_to_dmem = 4'b0;
+    case (insn_one_hot)
+      // lui
+      64'h200000000000: begin
+        
+      end
+      // auipc
+      64'h100000000000: begin
+        
+      end
+      // jal
+      64'h80000000000: begin
+        
+      end
+      // jalr
+      64'h40000000000: begin
+        
+      end
+      // beq
+      64'h20000000000: begin
+        
+      end
+      // bne
+      64'h10000000000: begin
+        
+      end
+      // blt
+      64'h8000000000: begin
+        
+      end
+      // bge
+      64'h4000000000: begin
+        
+      end
+      // bltu
+      64'h2000000000: begin
+        
+      end
+      // bgeu
+      64'h1000000000: begin
+        
+      end
+      // lb
+      64'h800000000: begin
+        
+      end
+      // lh
+      64'h400000000: begin
+        
+      end
+      // lw
+      64'h200000000: begin
+        
+      end
+      // lbu
+      64'h100000000: begin
+        
+      end
+      // lhu
+      64'h80000000: begin
+        
+      end
+      // sb
+      64'h40000000: begin
+        
+      end
+      // sh
+      64'h20000000: begin
+        
+      end
+      // sw
+      64'h10000000: begin
+        
+      end
+      // addi
+      64'h8000000: begin
+        
+      end
+      // slti
+      64'h4000000: begin
+        
+      end
+      // sltiu
+      64'h2000000: begin
+        
+      end
+      // xori
+      64'h1000000: begin
+        
+      end
+      // ori
+      64'h800000: begin
+        
+      end
+      // andi
+      64'h400000: begin
+        
+      end
+      // slli
+      64'h200000: begin
+        
+      end
+      // srli
+      64'h100000: begin
+        
+      end
+      // srai
+      64'h80000: begin
+        
+      end
+      // add
+      64'h40000: begin
+        
+      end
+      // sub
+      64'h20000: begin
+        
+      end
+      // sll
+      64'h10000: begin
+        
+      end
+      // slt
+      64'h8000: begin
+        
+      end
+      // sltu
+      64'h4000: begin
+        
+      end
+      // xor
+      64'h2000: begin
+        
+      end
+      // srl
+      64'h1000: begin
+        
+      end
+      // sra
+      64'h800: begin
+        
+      end
+      // or
+      64'h400: begin
+        
+      end
+      // and
+      64'h200: begin
+        
+      end
+      // mul
+      64'h100: begin
+        
+      end
+      // mulh
+      64'h80: begin
+        
+      end
+      // mulhsu
+      64'h40: begin
+        
+      end
+      // mulhu
+      64'h20: begin
+        
+      end
+      // div
+      64'h10: begin
+        
+      end
+      // divu
+      64'h80: begin
+        
+      end
+      // rem
+      64'h40: begin
+        
+      end
+      // remu
+      64'h20: begin
+        
+      end
+      // div
+      64'h10: begin
+        
+      end
+    endcase
+  end
 
   /*****************************************************/
   /*                    MEMORY STAGE                   */
