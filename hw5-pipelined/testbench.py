@@ -444,6 +444,11 @@ async def testFence(dut):
     assert dut.datapath.rf.regs[1].value == 0xFFFF_F000, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
     pass
 
+@cocotb.test()
+async def testOneRiscvTest(dut):
+    "Use this to run one particular riscv test"
+    await riscvTest(dut, RISCV_TESTS_PATH / 'rv32ui-p-lui')
+
 @cocotb.test(skip='RVTEST_ALUBR' in os.environ)
 async def testDiv(dut):
     "Run div insn"

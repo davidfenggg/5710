@@ -126,6 +126,8 @@ typedef struct packed {
   logic [`REG_SIZE] rd_data; // for store instructions
   logic [`INSN_SIZE] insn;
   logic reg_we_m; //we for mem
+  logic [4:0] rd;
+  logic halt_m;
   //store data to dmem
   cycle_status_e cycle_status;
 } stage_memory_t;
@@ -136,10 +138,10 @@ typedef struct packed {
   logic [`REG_SIZE] rd_data; //for write data
   logic [`INSN_SIZE] insn;
   logic reg_we_w;
+  logic [4:0] rd;
+  logic halt_w;
   cycle_status_e cycle_status;
 } stage_writeback_t;
-
-
 
 module DatapathPipelined (
     input wire clk,
@@ -202,6 +204,9 @@ module DatapathPipelined (
       f_pc_current <= 32'd0;
       // NB: use CYCLE_NO_STALL since this is the value that will persist after the last reset cycle
       f_cycle_status <= CYCLE_NO_STALL;
+    end else if (branch_taken) begin
+      f_pc_current <= branched_pc;
+      f_cycle_status <= CYCLE_NO_STALL;
     end else begin
       f_cycle_status <= CYCLE_NO_STALL;
       f_pc_current <= f_pc_current + 4;
@@ -233,14 +238,18 @@ module DatapathPipelined (
         insn: 0,
         cycle_status: CYCLE_RESET
       };
+    end else if (branch_taken) begin
+      decode_state <= '{
+        pc: 0,
+        insn: 0,
+        cycle_status: CYCLE_TAKEN_BRANCH
+      };
     end else begin
-      begin
-        decode_state <= '{
-          pc: f_pc_current,
-          insn: f_insn,
-          cycle_status: f_cycle_status
-        };
-      end
+      decode_state <= '{
+        pc: f_pc_current,
+        insn: f_insn,
+        cycle_status: f_cycle_status
+      };
     end
   end
 
@@ -352,6 +361,16 @@ module DatapathPipelined (
   
   logic illegal_insn;
   logic [`REG_SIZE] rs1_data_d, rs2_data_d;
+  logic branch_taken;
+
+  //WD BYPASS:
+
+  logic [`REG_SIZE] rs1_data_decoded, rs2_data_decoded;
+
+  always_comb begin
+    rs1_data_decoded = (writeback_state.reg_we_w && writeback_state.rd == insn_rs1_d && writeback_state.rd != 0) ? writeback_state.rd_data : rs1_data_d;
+    rs2_data_decoded = (writeback_state.reg_we_w && writeback_state.rd == insn_rs2_d && writeback_state.rd != 0) ? writeback_state.rd_data : rs2_data_d;
+  end
 
   // TODO: Need to change such that only rs1 and rs2 are modified in this cycle -- rd should be modified during the writeback phase
   RegFile rf (
@@ -362,7 +381,7 @@ module DatapathPipelined (
     .rs1(insn_rs1_d),
     .rs1_data(rs1_data_d),
     .rs2(insn_rs2_d),
-    .rs2_data(rs2_data_d),
+    .rs2_data(rs2_data_d), 
     .we(writeback_state.reg_we_w)
   );
 
@@ -370,8 +389,6 @@ module DatapathPipelined (
   /*                   EXECUTE STAGE                   */
   /*****************************************************/
 
-  //need struct packed: pc, insn, rs1, rs2 --> or can just access reg file to get these? 
-  //is there a better way to do this? 
   stage_execute_t execute_state;
   always_ff @(posedge clk) begin
     if (rst) begin
@@ -383,22 +400,27 @@ module DatapathPipelined (
         insn_one_hot: 0,
         cycle_status: CYCLE_RESET
       };
+    end else if (branch_taken) begin
+        execute_state <= '{
+          pc: 0,
+          insn: 0,
+          rs1_data: 0, 
+          rs2_data: 0, 
+          insn_one_hot: 0,
+          cycle_status: CYCLE_TAKEN_BRANCH
+        };
     end else begin
-      begin
         execute_state <= '{
           pc: decode_state.pc,
           insn: decode_state.insn,
-          rs1_data: rs1_data_d,
-          rs2_data: rs2_data_d,
+          rs1_data: rs1_data_decoded,
+          rs2_data: rs2_data_decoded,
           insn_one_hot: insn_one_hot,
           cycle_status: decode_state.cycle_status
         };
-      end
     end
   end
 
-
-  //pass in everything from the struct? 
 
   // components of the instruction
   wire [6:0] insn_funct7_x;
@@ -448,10 +470,33 @@ module DatapathPipelined (
     .sum(cla_sum)
   );
 
+  //MX and WX bypass:
+
+  logic[`REG_SIZE] rs1_data_x, rs2_data_x; 
+  logic[`REG_SIZE] branched_pc;
+  wire mx_bypass = (insn_rs1_x == insn_rd_m) | (insn_rs2_x == insn_rd_m);
+  wire wx_bypass = (insn_rs1_x == insn_rd_w) | (insn_rs2_x == insn_rd_w);
+  logic halt_x;
+
+  always_comb begin
+    if (mx_bypass) begin
+      rs1_data_x = ((insn_rs1_x == insn_rd_m) & (insn_rs1_x != 0)) ? memory_state.rd_data : execute_state.rs1_data;
+      rs2_data_x = ((insn_rs2_x == insn_rd_m) & (insn_rs2_x != 0)) ? memory_state.rd_data : execute_state.rs2_data;
+    end else if (wx_bypass) begin
+      rs1_data_x = ((insn_rs1_x == insn_rd_w) & (insn_rs1_x != 0)) ? writeback_state.rd_data : execute_state.rs1_data;
+      rs2_data_x = ((insn_rs2_x == insn_rd_w) & (insn_rs2_x != 0)) ? writeback_state.rd_data : execute_state.rs2_data;
+    end else begin
+      rs1_data_x = execute_state.rs1_data;
+      rs2_data_x = execute_state.rs2_data;
+    end
+  end
+
   always_comb begin
     illegal_insn = 1'b0;
-    halt = 1'b0;
+    halt_x = 1'b0;
     store_we_to_dmem = 4'b0;
+    branch_taken = 1'b0;
+    branched_pc = 32'b0;
     case (execute_state.insn_one_hot)
       // fence
       47'h400000000000: begin
@@ -468,7 +513,7 @@ module DatapathPipelined (
       end
       // jal
       47'h80000000000: begin
-        
+
       end
 
       // jalr
@@ -477,27 +522,39 @@ module DatapathPipelined (
       end
       // beq
       47'h20000000000: begin
-        
+        branch_taken = (rs1_data_x == rs2_data_x);
+        branched_pc = (f_pc_current + imm_b_sext);
+        we_x = 0;
       end
       // bne
       47'h10000000000: begin
-        
+        branch_taken = (rs1_data_x !== rs2_data_x);
+        branched_pc = (f_pc_current + imm_b_sext);
+        we_x = 0;
       end
       // blt
       47'h8000000000: begin
-        
+        branch_taken = ($signed(rs1_data_x) < $signed(rs2_data_x));
+        branched_pc = (f_pc_current + imm_b_sext);
+        we_x = 0;
       end
       // bge
       47'h4000000000: begin
-        
+        branch_taken = $signed(rs1_data_x) >= $signed(rs2_data_x);
+        branched_pc = (f_pc_current + imm_b_sext);
+        we_x = 0;
       end
       // bltu
       47'h2000000000: begin
-        
+        branch_taken = rs1_data_x < rs2_data_x;
+        branched_pc = (f_pc_current + imm_b_sext);
+        we_x = 0;
       end
       // bgeu
       47'h1000000000: begin
-        
+        branch_taken = rs1_data_x >= rs2_data_x;
+        branched_pc = (f_pc_current + imm_b_sext);
+        we_x = 0;
       end
       // lb
       47'h800000000: begin
@@ -533,103 +590,103 @@ module DatapathPipelined (
       end
       // addi
       47'h8000000: begin
-        cla_a = execute_state.rs1_data;
+        cla_a = rs1_data_x;
         cla_b = imm_i_sext;
         rd_data_x = cla_sum;
         we_x = 1;
       end
       // slti
       47'h4000000: begin
-        rd_data_x = ($signed(execute_state.rs1_data) < $signed(imm_i_sext)) ? 1 : 0;
+        rd_data_x = ($signed(rs1_data_x) < $signed(imm_i_sext)) ? 1 : 0;
         we_x = 1;
       end
       // sltiu
       47'h2000000: begin
-        rd_data_x = ($unsigned(execute_state.rs1_data) < $unsigned(imm_i_sext)) ? 1 : 0;
+        rd_data_x = ($unsigned(rs1_data_x) < $unsigned(imm_i_sext)) ? 1 : 0;
         we_x = 1;
       end
       // xori
       47'h1000000: begin
-        rd_data_x = execute_state.rs1_data ^ imm_i_sext;
+        rd_data_x = rs1_data_x ^ imm_i_sext;
         we_x = 1;
       end
       // ori
       47'h800000: begin
-        rd_data_x = execute_state.rs1_data | imm_i_sext;
+        rd_data_x = rs1_data_x | imm_i_sext;
         we_x = 1;
       end
       // andi
       47'h400000: begin
-        rd_data_x = execute_state.rs1_data & imm_i_sext;
+        rd_data_x = rs1_data_x & imm_i_sext;
         we_x = 1;
       end
       // slli
       47'h200000: begin
-        rd_data_x = execute_state.rs1_data << imm_i[4:0];
+        rd_data_x = rs1_data_x << imm_i[4:0];
         we_x = 1;
       end
       // srli
       47'h100000: begin
-        rd_data_x = execute_state.rs1_data >> imm_i[4:0];
+        rd_data_x = rs1_data_x >> imm_i[4:0];
         we_x = 1;
       end
       // srai
       47'h80000: begin
-        rd_data_x = $signed(execute_state.rs1_data) >>> imm_i[4:0];
+        rd_data_x = $signed(rs1_data_x) >>> imm_i[4:0];
         we_x = 1;
       end
       // add
       47'h40000: begin
-        cla_a = execute_state.rs1_data;
-        cla_b = execute_state.rs2_data;
+        cla_a = rs1_data_x;
+        cla_b = rs2_data_x;
         rd_data_x = cla_sum;
         we_x = 1;
       end
       // sub
       47'h20000: begin
-        cla_a = execute_state.rs1_data; 
-        cla_b = ~execute_state.rs2_data;
+        cla_a = rs1_data_x; 
+        cla_b = ~rs2_data_x;
         rd_data_x = cla_sum + 1;
         we_x = 1;
       end
       // sll
       47'h10000: begin
-        rd_data_x = execute_state.rs1_data << execute_state.rs2_data[4:0];
+        rd_data_x = rs1_data_x << rs2_data_x[4:0];
         we_x = 1;
       end
       // slt
       47'h8000: begin
-        rd_data_x = ($signed(execute_state.rs1_data) < $signed(execute_state.rs2_data)) ? 1 : 0;
+        rd_data_x = ($signed(rs1_data_x) < $signed(rs2_data_x)) ? 1 : 0;
         we_x = 1;
       end
       // sltu
       47'h4000: begin
-        rd_data_x = ($unsigned(execute_state.rs1_data) < $unsigned(execute_state.rs2_data)) ? 1 : 0;
+        rd_data_x = ($unsigned(rs1_data_x) < $unsigned(rs2_data_x)) ? 1 : 0;
         we_x = 1;
       end
       // xor
       47'h2000: begin
-        rd_data_x = execute_state.rs1_data ^ execute_state.rs2_data;
+        rd_data_x =rs1_data_x ^ rs2_data_x;
         we_x = 1;
       end
       // srl
       47'h1000: begin
-        rd_data_x = execute_state.rs1_data >> execute_state.rs2_data[4:0];
+        rd_data_x = rs1_data_x >> rs2_data_x[4:0];
         we_x = 1;
       end
       // sra
       47'h800: begin
-        rd_data_x = $signed(execute_state.rs1_data) >>> execute_state.rs2_data[4:0];
+        rd_data_x = $signed(rs1_data_x) >>> rs2_data_x[4:0];
         we_x = 1;
       end
       // or
       47'h400: begin
-        rd_data_x = execute_state.rs1_data | execute_state.rs2_data;
+        rd_data_x = rs1_data_x | rs2_data_x;
         we_x = 1;
       end
       // and
       47'h200: begin
-        rd_data_x = execute_state.rs1_data & execute_state.rs2_data;
+        rd_data_x = rs1_data_x & rs2_data_x;
         we_x = 1;
       end
       // mul
@@ -666,7 +723,7 @@ module DatapathPipelined (
       end
       // ecall
       47'h1: begin
-        
+        halt_x = 1'b1;
       end
     endcase
   end
@@ -691,6 +748,8 @@ module DatapathPipelined (
         insn: 0,
         rd_data: 0,
         reg_we_m: 0,
+        rd: 0,
+        halt_m: 0,
         cycle_status: CYCLE_RESET
       };
     end else begin
@@ -700,12 +759,13 @@ module DatapathPipelined (
           insn: execute_state.insn,
           rd_data: rd_data_x,
           reg_we_m: we_x,
+          rd: insn_rd_x,
+          halt_m: halt_x,
           cycle_status: execute_state.cycle_status
         };
       end
     end
   end
-  //do load and storing here? and have execute just be the offsets?
 
   // components of the instruction
   wire [6:0] insn_funct7_m;
@@ -739,6 +799,8 @@ module DatapathPipelined (
         insn: 0,
         rd_data: 0,
         reg_we_w: 0,
+        rd: 0,
+        halt_w: 0,
         cycle_status: CYCLE_RESET
       };
     end else begin
@@ -748,6 +810,8 @@ module DatapathPipelined (
           insn: memory_state.insn,
           rd_data: memory_state.rd_data,
           reg_we_w: memory_state.reg_we_m,
+          rd: memory_state.rd,
+          halt_w: memory_state.halt_m,
           cycle_status: memory_state.cycle_status
         };
       end
@@ -756,6 +820,7 @@ module DatapathPipelined (
 
   logic we_w = writeback_state.reg_we_w;
   logic [`REG_SIZE] rd_data_w = writeback_state.rd_data;
+  assign halt = writeback_state.halt_w;
 
   // components of the instruction
   wire [6:0] insn_funct7_w;
@@ -764,6 +829,10 @@ module DatapathPipelined (
   wire [2:0] insn_funct3_w;
   wire [4:0] insn_rd_w;
   wire [`OPCODE_SIZE] insn_opcode_w;
+
+  assign trace_writeback_pc = writeback_state.pc;
+  assign trace_writeback_insn = writeback_state.insn;
+  assign trace_writeback_cycle_status = writeback_state.cycle_status;
 
   // split R-type instruction - see section 2.2 of RiscV spec
   assign {insn_funct7_w, insn_rs2_w, insn_rs1_w, insn_funct3_w, insn_rd_w, insn_opcode_w} = writeback_state.insn;
