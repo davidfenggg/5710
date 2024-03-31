@@ -461,14 +461,14 @@ module DatapathPipelined (
   logic we_x;
 
   //ADDER
-  logic [`REG_SIZE] cla_a, cla_b, cla_sum;
+  // logic [`REG_SIZE] cla_a, cla_b, cla_sum;
 
-  cla adder (
-    .a(cla_a),
-    .b(cla_b),
-    .cin(1'b0),
-    .sum(cla_sum)
-  );
+  // cla adder (
+  //   .a(cla_a),
+  //   .b(cla_b),
+  //   .cin(1'b0),
+  //   .sum(cla_sum)
+  // );
 
   //MX and WX bypass:
 
@@ -477,19 +477,7 @@ module DatapathPipelined (
   wire mx_bypass = (insn_rs1_x == insn_rd_m) | (insn_rs2_x == insn_rd_m);
   wire wx_bypass = (insn_rs1_x == insn_rd_w) | (insn_rs2_x == insn_rd_w);
   logic halt_x;
-
-  always_comb begin
-    if (mx_bypass) begin
-      rs1_data_x = ((insn_rs1_x == insn_rd_m) & (insn_rs1_x != 0)) ? memory_state.rd_data : execute_state.rs1_data;
-      rs2_data_x = ((insn_rs2_x == insn_rd_m) & (insn_rs2_x != 0)) ? memory_state.rd_data : execute_state.rs2_data;
-    end else if (wx_bypass) begin
-      rs1_data_x = ((insn_rs1_x == insn_rd_w) & (insn_rs1_x != 0)) ? writeback_state.rd_data : execute_state.rs1_data;
-      rs2_data_x = ((insn_rs2_x == insn_rd_w) & (insn_rs2_x != 0)) ? writeback_state.rd_data : execute_state.rs2_data;
-    end else begin
-      rs1_data_x = execute_state.rs1_data;
-      rs2_data_x = execute_state.rs2_data;
-    end
-  end
+  logic rs1_conflict, rs2_conflict;
 
   always_comb begin
     illegal_insn = 1'b0;
@@ -497,6 +485,36 @@ module DatapathPipelined (
     store_we_to_dmem = 4'b0;
     branch_taken = 1'b0;
     branched_pc = 32'b0;
+
+    rs1_conflict = (insn_rs1_x == insn_rd_w) | (insn_rs1_x == insn_rd_m);
+    rs2_conflict = (insn_rs2_x == insn_rd_w) | (insn_rs2_x == insn_rd_m);
+    
+    rs1_data_x = execute_state.rs1_data;
+    rs2_data_x = execute_state.rs2_data;
+    if (rs1_conflict) begin
+      if (wx_bypass) begin
+        rs1_data_x = writeback_state.rd_data;
+      end 
+      if (mx_bypass) begin
+        rs1_data_x = memory_state.rd_data;
+      end
+    end
+    if (rs2_conflict) begin
+      if (wx_bypass) begin
+        rs2_data_x = writeback_state.rd_data;
+      end
+      if (mx_bypass) begin
+        rs1_data_x = memory_state.rd_data;
+      end
+    end
+    // if (wx_bypass) begin
+    //   rs1_data_x = ((insn_rs1_x == insn_rd_w) & (insn_rs1_x != 0)) ? writeback_state.rd_data : execute_state.rs1_data;
+    //   rs2_data_x = ((insn_rs2_x == insn_rd_w) & (insn_rs2_x != 0)) ? writeback_state.rd_data : execute_state.rs2_data;
+    // end 
+    // if (mx_bypass) begin
+    //   rs1_data_x = ((insn_rs1_x == insn_rd_m) & (insn_rs1_x != 0)) ? memory_state.rd_data : execute_state.rs1_data;
+    //   rs2_data_x = ((insn_rs2_x == insn_rd_m) & (insn_rs2_x != 0)) ? memory_state.rd_data : execute_state.rs2_data;
+    // end 
     case (execute_state.insn_one_hot)
       // fence
       47'h400000000000: begin
@@ -590,9 +608,7 @@ module DatapathPipelined (
       end
       // addi
       47'h8000000: begin
-        cla_a = rs1_data_x;
-        cla_b = imm_i_sext;
-        rd_data_x = cla_sum;
+        rd_data_x = rs1_data_x + imm_i_sext;
         we_x = 1;
       end
       // slti
@@ -637,16 +653,12 @@ module DatapathPipelined (
       end
       // add
       47'h40000: begin
-        cla_a = rs1_data_x;
-        cla_b = rs2_data_x;
-        rd_data_x = cla_sum;
+        rd_data_x = rs1_data_x + rs2_data_x;
         we_x = 1;
       end
       // sub
       47'h20000: begin
-        cla_a = rs1_data_x; 
-        cla_b = ~rs2_data_x;
-        rd_data_x = cla_sum + 1;
+        rd_data_x = rs1_data_x + ~rs2_data_x + 1;
         we_x = 1;
       end
       // sll
