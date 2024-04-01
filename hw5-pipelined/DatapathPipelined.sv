@@ -113,7 +113,7 @@ typedef struct packed {
 
 /** state at the start of Execute stage */
 typedef struct packed {
-  logic [`REG_SIZE] pc;
+  logic [`REG_SIZE] pc_x;
   logic [`INSN_SIZE] insn;
   logic [`REG_SIZE] rs1_data, rs2_data;
   logic [46:0] insn_one_hot;
@@ -205,7 +205,7 @@ module DatapathPipelined (
       // NB: use CYCLE_NO_STALL since this is the value that will persist after the last reset cycle
       f_cycle_status <= CYCLE_NO_STALL;
     end else if (branch_taken) begin
-      f_pc_current <= branched_pc;
+      f_pc_current <= pc_x;
       f_cycle_status <= CYCLE_NO_STALL;
     end else begin
       f_cycle_status <= CYCLE_NO_STALL;
@@ -393,7 +393,7 @@ module DatapathPipelined (
   always_ff @(posedge clk) begin
     if (rst) begin
       execute_state <= '{
-        pc: 0,
+        pc_x: 0,
         insn: 0,
         rs1_data: 0,
         rs2_data: 0,
@@ -402,7 +402,7 @@ module DatapathPipelined (
       };
     end else if (branch_taken) begin
         execute_state <= '{
-          pc: 0,
+          pc_x: 0,
           insn: 0,
           rs1_data: 0, 
           rs2_data: 0, 
@@ -411,7 +411,7 @@ module DatapathPipelined (
         };
     end else begin
         execute_state <= '{
-          pc: decode_state.pc,
+          pc_x: decode_state.pc,
           insn: decode_state.insn,
           rs1_data: rs1_data_decoded,
           rs2_data: rs2_data_decoded,
@@ -473,53 +473,62 @@ module DatapathPipelined (
   //MX and WX bypass:
 
   logic[`REG_SIZE] rs1_data_x, rs2_data_x; 
-  logic[`REG_SIZE] branched_pc;
-  wire mx_bypass = (insn_rs1_x == insn_rd_m) | (insn_rs2_x == insn_rd_m);
-  wire wx_bypass = (insn_rs1_x == insn_rd_w) | (insn_rs2_x == insn_rd_w);
-  logic halt_x;
-  logic rs1_conflict, rs2_conflict;
+  //logic[`REG_SIZE] branched_pc;
+  wire mx_bypass_rs1 = (insn_rs1_x == insn_rd_m) & (insn_rs1_x != 0);
+  wire wx_bypass_rs1 = (insn_rs1_x == insn_rd_w) & (insn_rs1_x != 0);
+  wire mx_bypass_rs2 = (insn_rs2_x == insn_rd_m) & (insn_rs2_x != 0);
+  wire wx_bypass_rs2 = (insn_rs2_x == insn_rd_w) & (insn_rs2_x != 0);
 
-  // always_comb begin
-  //   if (mx_bypass) begin
-  //     rs1_data_x = ((insn_rs1_x == insn_rd_m) & (insn_rs1_x != 0)) ? memory_state.rd_data : execute_state.rs1_data;
-  //     rs2_data_x = ((insn_rs2_x == insn_rd_m) & (insn_rs2_x != 0)) ? memory_state.rd_data : execute_state.rs2_data;
-  //   end else if (wx_bypass) begin
-  //     rs1_data_x = ((insn_rs1_x == insn_rd_w) & (insn_rs1_x != 0)) ? writeback_state.rd_data : execute_state.rs1_data;
-  //     rs2_data_x = ((insn_rs2_x == insn_rd_w) & (insn_rs2_x != 0)) ? writeback_state.rd_data : execute_state.rs2_data;
-  //   end else begin
-  //     rs1_data_x = execute_state.rs1_data;
-  //     rs2_data_x = execute_state.rs2_data;
-  //   end
-  // end
+  logic halt_x;
+  // logic rs1_conflict, rs2_conflict;
+
+  // BYPASSING LOGIC
+  always_comb begin
+    // rs1_conflict = (insn_rs1_x == insn_rd_w) | (insn_rs1_x == insn_rd_m);
+    // rs2_conflict = (insn_rs2_x == insn_rd_w) | (insn_rs2_x == insn_rd_m);
+    
+    rs1_data_x = execute_state.rs1_data;
+    rs2_data_x = execute_state.rs2_data;
+    if (wx_bypass_rs1) begin
+      rs1_data_x = writeback_state.rd_data;
+    end
+    if (mx_bypass_rs1) begin
+      rs1_data_x = memory_state.rd_data;
+    end 
+    if (wx_bypass_rs2) begin
+      rs2_data_x = writeback_state.rd_data;
+    end
+    if (mx_bypass_rs2) begin
+      rs2_data_x = memory_state.rd_data;
+    end
+    // if (rs1_conflict) begin
+    //   if (wx_bypass & (insn_rs1_x != 0)) begin
+    //     rs1_data_x = writeback_state.rd_data;
+    //   end 
+    //   if (mx_bypass & (insn_rs1_x != 0)) begin
+    //     rs1_data_x = memory_state.rd_data;
+    //   end
+    // end
+    // if (rs2_conflict) begin
+    //   if (wx_bypass & (insn_rs2_x != 0)) begin
+    //     rs2_data_x = writeback_state.rd_data;
+    //   end
+    //   if (mx_bypass & (insn_rs2_x != 0)) begin
+    //     rs2_data_x = memory_state.rd_data;
+    //   end
+    // end
+  end
+ 
+
+  logic [`REG_SIZE] pc_x; // end
 
   always_comb begin
     illegal_insn = 1'b0;
     halt_x = 1'b0;
     store_we_to_dmem = 4'b0;
-    branch_taken = 1'b0;
-    branched_pc = 32'b0;
-
-    rs1_conflict = (insn_rs1_x == insn_rd_w) | (insn_rs1_x == insn_rd_m);
-    rs2_conflict = (insn_rs2_x == insn_rd_w) | (insn_rs2_x == insn_rd_m);
-    
-    rs1_data_x = execute_state.rs1_data;
-    rs2_data_x = execute_state.rs2_data;
-    if (rs1_conflict) begin
-      if (wx_bypass & (insn_rs1_x != 0)) begin
-        rs1_data_x = writeback_state.rd_data;
-      end 
-      if (mx_bypass & (insn_rs1_x != 0)) begin
-        rs1_data_x = memory_state.rd_data;
-      end
-    end
-    if (rs2_conflict) begin
-      if (wx_bypass & (insn_rs2_x != 0)) begin
-        rs2_data_x = writeback_state.rd_data;
-      end
-      if (mx_bypass & (insn_rs2_x != 0)) begin
-        rs2_data_x = memory_state.rd_data;
-      end
-    end
+    branch_taken = 1'b0;//0;
+    //branched_pc =
+    pc_x = 0;
 
     case (execute_state.insn_one_hot)
       // fence
@@ -537,47 +546,53 @@ module DatapathPipelined (
       end
       // jal
       47'h80000000000: begin
-
+        we_x = 1'b1;
+        rd_data_x = execute_state.pc_x + 4;
+        pc_x = execute_state.pc_x + imm_j_sext;
+        branch_taken = 1'b1;
       end
 
       // jalr
       47'h40000000000: begin
-
+        we_x = 1'b1;
+        rd_data_x = execute_state.pc_x;
+        pc_x = (rs1_data_x + imm_i_sext) & 32'hfffffffe;
+        branch_taken = 1'b1;
       end
       // beq
       47'h20000000000: begin
         branch_taken = (rs1_data_x == rs2_data_x);
-        branched_pc = (execute_state.pc + imm_b_sext);
+        pc_x = (rs1_data_x == rs2_data_x) ? (execute_state.pc_x + imm_b_sext) : execute_state.pc_x;
         we_x = 0;
       end
       // bne
       47'h10000000000: begin
         branch_taken = (rs1_data_x !== rs2_data_x);
-        branched_pc = (execute_state.pc + imm_b_sext);
+        pc_x = (rs1_data_x !== rs2_data_x) ? (execute_state.pc_x + imm_b_sext) : execute_state.pc_x;
         we_x = 0;
       end
       // blt
       47'h8000000000: begin
         branch_taken = ($signed(rs1_data_x) < $signed(rs2_data_x));
-        branched_pc = (execute_state.pc + imm_b_sext);
+        pc_x = ($signed(rs1_data_x) < $signed(rs2_data_x)) ? (execute_state.pc_x + imm_b_sext) : execute_state.pc_x;
         we_x = 0;
       end
       // bge
       47'h4000000000: begin
         branch_taken = $signed(rs1_data_x) >= $signed(rs2_data_x);
-        branched_pc = (execute_state.pc + imm_b_sext);
+        pc_x = $signed(rs1_data_x) >= $signed(rs2_data_x) ? (execute_state.pc_x + imm_b_sext) : execute_state.pc_x;
         we_x = 0;
       end
       // bltu
       47'h2000000000: begin
         branch_taken = rs1_data_x < rs2_data_x;
-        branched_pc = (execute_state.pc + imm_b_sext);
+        pc_x = (rs1_data_x < rs2_data_x) ? (execute_state.pc_x + imm_b_sext) : execute_state.pc_x;
         we_x = 0;
       end
       // bgeu
       47'h1000000000: begin
         branch_taken = rs1_data_x >= rs2_data_x;
-        branched_pc = (execute_state.pc + imm_b_sext);
+        pc_x = (rs1_data_x >= rs2_data_x) ? (execute_state.pc_x + imm_b_sext) : execute_state.pc_x;
         we_x = 0;
       end
       // lb
@@ -773,7 +788,7 @@ module DatapathPipelined (
     end else begin
       begin
         memory_state <= '{
-          pc: execute_state.pc,
+          pc: execute_state.pc_x,
           insn: execute_state.insn,
           rd_data: rd_data_x,
           reg_we_m: we_x,

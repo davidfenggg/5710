@@ -447,7 +447,7 @@ async def testFence(dut):
 @cocotb.test()
 async def testOneRiscvTest(dut):
     "Use this to run one particular riscv test"
-    await riscvTest(dut, RISCV_TESTS_PATH / 'rv32ui-p-lui')
+    await riscvTest(dut, RISCV_TESTS_PATH / 'rv32ui-p-and')
 
 @cocotb.test(skip='RVTEST_ALUBR' in os.environ)
 async def testDiv(dut):
