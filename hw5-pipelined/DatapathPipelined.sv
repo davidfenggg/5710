@@ -489,16 +489,16 @@ module DatapathPipelined (
     
     rs1_data_x = execute_state.rs1_data;
     rs2_data_x = execute_state.rs2_data;
-    if (wx_bypass_rs1) begin
+    if (wx_bypass_rs1 & insn_opcode_w != OpcodeBranch) begin
       rs1_data_x = writeback_state.rd_data;
     end
-    if (mx_bypass_rs1) begin
+    if (mx_bypass_rs1 & insn_opcode_m != OpcodeBranch) begin
       rs1_data_x = memory_state.rd_data;
     end 
-    if (wx_bypass_rs2) begin
+    if (wx_bypass_rs2 & insn_opcode_w != OpcodeBranch) begin
       rs2_data_x = writeback_state.rd_data;
     end
-    if (mx_bypass_rs2) begin
+    if (mx_bypass_rs2 & insn_opcode_m != OpcodeBranch) begin
       rs2_data_x = memory_state.rd_data;
     end
     // if (rs1_conflict) begin
