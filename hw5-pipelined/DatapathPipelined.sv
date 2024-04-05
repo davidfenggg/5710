@@ -128,7 +128,7 @@ typedef struct packed {
   logic reg_we_m; //we for mem
   logic [4:0] rd;
   logic halt_m;
-  //store data to dmem
+  logic [`REG_SIZE] addr_to_dmem_m;
   cycle_status_e cycle_status;
 } stage_memory_t;
 
