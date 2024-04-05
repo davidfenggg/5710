@@ -129,6 +129,10 @@ typedef struct packed {
   logic [4:0] rd;
   logic halt_m;
   logic [`REG_SIZE] addr_to_dmem_m;
+  logic [`REG_SIZE] rs1_data_m;
+  logic [`REG_SIZE] imm_i_sext_m;
+  logic [46:0] insn_one_hot;
+  logic [`REG_SIZE] rs1_add_imm_m;
   cycle_status_e cycle_status;
 } stage_memory_t;
 
@@ -204,6 +208,7 @@ module DatapathPipelined (
       f_pc_current <= 32'd0;
       // NB: use CYCLE_NO_STALL since this is the value that will persist after the last reset cycle
       f_cycle_status <= CYCLE_NO_STALL;
+    end else if (load_use_stall) begin
     end else if (branch_taken) begin
       f_pc_current <= pc_x;
       f_cycle_status <= CYCLE_NO_STALL;
@@ -237,6 +242,12 @@ module DatapathPipelined (
         pc: 0,
         insn: 0,
         cycle_status: CYCLE_RESET
+      };
+    end else if (load_use_stall) begin
+      decode_state <= '{
+        pc: decode_state.pc,
+        insn: decode_state.insn,
+        cycle_status: decode_state.cycle_status
       };
     end else if (branch_taken) begin
       decode_state <= '{
@@ -353,23 +364,29 @@ module DatapathPipelined (
   insn_srai, insn_add, insn_sub, insn_sll, insn_slt, insn_sltu, insn_xor, insn_srl, insn_sra, insn_or, 
   insn_and, insn_mul, insn_mulh, insn_mulhsu, insn_mulhu, insn_div, insn_divu, insn_rem, insn_remu, 
   insn_ecall};
-
-  // TODO: Decode the registers that are being used? (rd, rs1, rs2)
-
-  // TODO: your code here, though you will also need to modify some of the code above -- this seems to mean branch in the if-else
-  // TODO: the testbench requires that your register file instance is named `rf`
   
   logic illegal_insn;
   logic [`REG_SIZE] rs1_data_d, rs2_data_d;
   logic branch_taken;
 
   //WD BYPASS:
-
   logic [`REG_SIZE] rs1_data_decoded, rs2_data_decoded;
 
   always_comb begin
     rs1_data_decoded = (writeback_state.reg_we_w && writeback_state.rd == insn_rs1_d && writeback_state.rd != 0) ? writeback_state.rd_data : rs1_data_d;
     rs2_data_decoded = (writeback_state.reg_we_w && writeback_state.rd == insn_rs2_d && writeback_state.rd != 0) ? writeback_state.rd_data : rs2_data_d;
+  end
+
+  // Load-Use Stalling
+  wire load_in_execute = insn_opcode_x == OpcodeLoad;
+  wire d_x_conflict = (insn_rs1_d == insn_rd_x & insn_rs1_d != 0) | (insn_rs2_d == insn_rd_x & insn_rs2_d != 0);
+  logic load_use_stall;
+
+  always_comb begin
+    load_use_stall = 0;
+    if (load_in_execute & d_x_conflict) begin
+      load_use_stall = 1;
+    end
   end
 
   // TODO: Need to change such that only rs1 and rs2 are modified in this cycle -- rd should be modified during the writeback phase
@@ -408,6 +425,15 @@ module DatapathPipelined (
           rs2_data: 0, 
           insn_one_hot: 0,
           cycle_status: CYCLE_TAKEN_BRANCH
+        };
+    end else if (load_use_stall) begin
+        execute_state <= '{
+          pc_x: 0,
+          insn: 0,
+          rs1_data: 0, 
+          rs2_data: 0, 
+          insn_one_hot: 0,
+          cycle_status: CYCLE_LOAD2USE
         };
     end else begin
         execute_state <= '{
@@ -494,6 +520,8 @@ module DatapathPipelined (
   logic [`REG_SIZE] pc_x; // end
   logic [`REG_SIZE] addr_to_dmem_x;
 
+  logic [`REG_SIZE] rs1_add_imm = rs1_data_x + imm_i_sext;
+
   always_comb begin
     illegal_insn = 1'b0;
     halt_x = 1'b0;
@@ -569,54 +597,43 @@ module DatapathPipelined (
       end
       // lb
       47'h800000000: begin
-        we = 1'b1; 
+        we_x = 1'b1; 
         addr_to_dmem_x = ((rs1_data_x + imm_i_sext) >> 2) << 2;
-        // case((rs1_data_x + imm_i_sext << 30) >> 30)
-        //     32'b00: begin
-        //         rd_data_x = {{24{load_data_from_dmem[7]}}, load_data_from_dmem[7:0]};
-        //     end
-        //     32'b01: begin
-        //         rd_data_x = {{24{load_data_from_dmem[15]}}, load_data_from_dmem[15:8]};
-        //     end
-        //     32'b10: begin
-        //         rd_data_x = {{24{load_data_from_dmem[23]}}, load_data_from_dmem[23:16]};
-        //     end
-        //     32'b11: begin
-        //         rd_data_x = {{24{load_data_from_dmem[31]}}, load_data_from_dmem[31:24]};
-        //     end
-        //     default: begin
-        //         illegal_insn = 1'b1;
-        //     end
-        // endcase
-        pcNext = pcCurrent + 4;
       end
       // lh
       47'h400000000: begin
-        
+        we_x = 1'b1; 
+        addr_to_dmem_x = ((rs1_data_x + imm_i_sext) >> 2) << 2;
       end
       // lw
       47'h200000000: begin
-        
+        we_x = 1'b1; 
+        addr_to_dmem_x = ((rs1_data_x + imm_i_sext) >> 2) << 2;
       end
       // lbu
       47'h100000000: begin
-        
+        we_x = 1'b1; 
+        addr_to_dmem_x = ((rs1_data_x + imm_i_sext) >> 2) << 2;
       end
       // lhu
       47'h80000000: begin
-        
+        we_x = 1'b1; 
+        addr_to_dmem_x = ((rs1_data_x + imm_i_sext) >> 2) << 2;
       end
       // sb
       47'h40000000: begin
-        
+        we_x = 1'b0; 
+        addr_to_dmem_x = ((rs1_data_x + imm_i_sext) >> 2) << 2;
       end
       // sh
       47'h20000000: begin
-        
+        we_x = 1'b0; 
+        addr_to_dmem_x = ((rs1_data_x + imm_i_sext) >> 2) << 2;
       end
       // sw
       47'h10000000: begin
-        
+        we_x = 1'b0; 
+        addr_to_dmem_x = ((rs1_data_x + imm_i_sext) >> 2) << 2;
       end
       // addi
       47'h8000000: begin
@@ -782,7 +799,12 @@ module DatapathPipelined (
         reg_we_m: 0,
         rd: 0,
         halt_m: 0,
-        cycle_status: CYCLE_RESET
+        cycle_status: CYCLE_RESET,
+        addr_to_dmem_m: 0,
+        rs1_data_m: 0,
+        imm_i_sext_m: 0,
+        insn_one_hot: 0,
+        rs1_add_imm_m: 0
       };
     end else begin
       begin
@@ -793,8 +815,12 @@ module DatapathPipelined (
           reg_we_m: we_x,
           rd: insn_rd_x,
           halt_m: halt_x,
-          cycle_status: execute_state.cycle_status
-          //addr_to_dmem_m : addr_to_dmem
+          cycle_status: execute_state.cycle_status,
+          addr_to_dmem_m: addr_to_dmem_x,
+          rs1_data_m: rs1_data_x,
+          imm_i_sext_m: imm_i_sext,
+          insn_one_hot: execute_state.insn_one_hot,
+          rs1_add_imm_m: rs1_add_imm
         };
       end
     end
@@ -810,7 +836,105 @@ module DatapathPipelined (
 
   // split R-type instruction - see section 2.2 of RiscV spec
   assign {insn_funct7_m, insn_rs2_m, insn_rs1_m, insn_funct3_m, insn_rd_m, insn_opcode_m} = memory_state.insn;
+  logic [`REG_SIZE] rd_data_m;
 
+  // actual code logic starts here
+  
+  always_comb begin
+  addr_to_dmem = memory_state.addr_to_dmem_m;
+  rd_data_m = memory_state.rd_data;
+    case (memory_state.insn_one_hot)
+      // lb
+      47'h800000000: begin
+        case((memory_state.rs1_add_imm_m << 30) >> 30)
+            32'b00: begin
+                rd_data_m = {{24{load_data_from_dmem[7]}}, load_data_from_dmem[7:0]};
+            end
+            32'b01: begin
+                rd_data_m = {{24{load_data_from_dmem[15]}}, load_data_from_dmem[15:8]};
+            end
+            32'b10: begin
+                rd_data_m = {{24{load_data_from_dmem[23]}}, load_data_from_dmem[23:16]};
+            end
+            32'b11: begin
+                rd_data_m = {{24{load_data_from_dmem[31]}}, load_data_from_dmem[31:24]};
+            end
+            default: begin
+            end
+        endcase
+      end
+      // lh
+      47'h400000000: begin
+        case(((memory_state.rs1_add_imm_m) << 30) >> 30)
+            32'b00: begin
+                rd_data_m = {{16{load_data_from_dmem[15]}}, load_data_from_dmem[15:0]};
+            end
+            32'b10: begin
+                rd_data_m = {{16{load_data_from_dmem[31]}}, load_data_from_dmem[31:16]};
+            end
+            default: begin
+            end
+        endcase
+      end
+      // lw
+      47'h200000000: begin
+        case(((memory_state.rs1_add_imm_m) << 30) >> 30)
+            32'b00: begin
+                rd_data_m = load_data_from_dmem;
+            end
+            default: begin
+            end
+        endcase
+      end
+      // lbu
+      47'h100000000: begin
+        case(((memory_state.rs1_add_imm_m) << 30) >> 30)
+            32'b00: begin
+                rd_data_m = {24'b0, load_data_from_dmem[7:0]};
+            end
+            32'b01: begin
+                rd_data_m = {24'b0, load_data_from_dmem[15:8]};
+            end
+            32'b10: begin
+                rd_data_m = {24'b0, load_data_from_dmem[23:16]};
+            end
+            32'b11: begin
+                rd_data_m = {24'b0, load_data_from_dmem[31:24]};
+            end
+            default: begin
+            end
+        endcase
+      end
+      // lhu
+      47'h80000000: begin
+        case((memory_state.rs1_add_imm_m << 30) >> 30)
+            32'b00: begin
+                rd_data_m = {16'b0, load_data_from_dmem[15:0]};
+            end
+            32'b10: begin
+                rd_data_m = {16'b0, load_data_from_dmem[31:16]};
+            end
+            default: begin
+            end
+        endcase
+      end
+      // sb
+      47'h40000000: begin
+        
+      end
+      // sh
+      47'h20000000: begin
+        
+      end
+      // sw
+      47'h10000000: begin
+        
+      end
+      default: begin
+        
+      end
+    endcase
+  end
 
   wire [(8*32)-1:0] m_disasm;
   Disasm #(
@@ -841,7 +965,7 @@ module DatapathPipelined (
         writeback_state <= '{
           pc: memory_state.pc,
           insn: memory_state.insn,
-          rd_data: memory_state.rd_data,
+          rd_data: rd_data_m,
           reg_we_w: memory_state.reg_we_m,
           rd: memory_state.rd,
           halt_w: memory_state.halt_m,

@@ -386,6 +386,22 @@ async def testLoadUse2(dut):
     assert dut.datapath.rf.regs[2].value == 0x0000_2083, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
     pass
 
+    
+@cocotb.test(skip='RVTEST_ALUBR' in os.environ)
+async def testLoadStall(dut):
+    """Test case for load-use dependency"""
+    asm(dut, '''
+        lw x1,0(x0)    # Load data from memory into x2
+        add x3,x0,x1   # Add x2 to x0 and store result in x3
+        ecall
+        ''')
+
+    await preTestSetup(dut)
+
+    await ClockCycles(dut.clk, 9)
+    assert dut.datapath.rf.regs[3].value == 0x0000_2083, f'Failed at cycle {dut.datapath.cycles_current.value.integer}'
+    pass
+
 @cocotb.test(skip='RVTEST_ALUBR' in os.environ)
 async def testLoadFalseUse(dut):
     "load followed by insn that doesn't actually use load result"
