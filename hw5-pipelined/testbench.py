@@ -428,6 +428,7 @@ async def testWMData(dut):
     assert dut.the_mem.mem[3].value == 0x0000_2083, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
     pass
 
+# this should NOT WM bypass
 @cocotb.test(skip='RVTEST_ALUBR' in os.environ)
 async def testWMAddress(dut):
     "WM bypass"
