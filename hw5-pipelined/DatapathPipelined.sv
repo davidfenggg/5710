@@ -212,6 +212,7 @@ module DatapathPipelined (
       // NB: use CYCLE_NO_STALL since this is the value that will persist after the last reset cycle
       f_cycle_status <= CYCLE_NO_STALL;
     end else if (load_use_stall || div_stall_required) begin
+    end else if (store_in_execute || store_in_memory) begin
     end else if (branch_taken) begin
       f_pc_current <= pc_x;
       f_cycle_status <= CYCLE_NO_STALL;
@@ -258,6 +259,12 @@ module DatapathPipelined (
         insn: 0,
         cycle_status: CYCLE_TAKEN_BRANCH
       };
+    end else if (store_in_execute || store_in_memory) begin
+      decode_state <= '{
+        pc: decode_state.pc,
+        insn: decode_state.insn,
+        cycle_status: decode_state.cycle_status
+      };
     end else begin
       decode_state <= '{
         pc: f_pc_current,
@@ -266,6 +273,9 @@ module DatapathPipelined (
       };
     end
   end
+
+  wire store_in_execute = (insn_opcode_x == OpcodeStore && insn_opcode == OpcodeMiscMem);
+  wire store_in_memory = (insn_opcode_m == OpcodeStore && insn_opcode == OpcodeMiscMem);
 
   wire [255:0] d_disasm;
   Disasm #(
@@ -384,8 +394,9 @@ module DatapathPipelined (
   wire load_in_execute = insn_opcode_x == OpcodeLoad;
   wire rs1_conflict = (insn_rs1_d == insn_rd_x & insn_rs1_d != 0);
   wire rs2_conflict = (insn_rs2_d == insn_rd_x & insn_rs2_d != 0);
+  wire r_s_b_insn = (insn_opcode == OpcodeRegReg | insn_opcode == OpcodeStore | insn_opcode == OpcodeBranch);
   wire not_store = (insn_opcode != OpcodeStore);
-  wire load_use_stall = (load_in_execute & (rs1_conflict | (rs2_conflict & not_store))) ? 1 : 0;
+  wire load_use_stall = (load_in_execute & (rs1_conflict | (rs2_conflict & not_store & r_s_b_insn))) ? 1 : 0;
 
   // TODO: Need to change such that only rs1 and rs2 are modified in this cycle -- rd should be modified during the writeback phase
   RegFile rf (
@@ -432,6 +443,15 @@ module DatapathPipelined (
           rs2_data: 0, 
           insn_one_hot: 0,
           cycle_status: CYCLE_LOAD2USE
+        };
+    end else if (store_in_execute || store_in_memory) begin
+        execute_state <= '{
+          pc_x: 0,
+          insn: 0,
+          rs1_data: 0, 
+          rs2_data: 0, 
+          insn_one_hot: 0,
+          cycle_status: CYCLE_FENCEI
         };
     end else if (div_stall_required) begin
         execute_state <= '{
@@ -559,8 +579,6 @@ module DatapathPipelined (
          we_x = 1'b0;
          rd_data_x = 'd0;
          halt_x = 1'b0;
-        // store_data_to_dmem = 'd0;
-        // store_we_to_dmem = 4'b0000;
       end
       // lui
       47'h200000000000: begin
@@ -569,7 +587,8 @@ module DatapathPipelined (
       end
       // auipc
       47'h100000000000: begin
-        
+        we_x = 1'b1;
+        rd_data_x = execute_state.pc_x + {execute_state.insn[31:12], 12'b0};
       end
       // jal
       47'h80000000000: begin
@@ -582,7 +601,7 @@ module DatapathPipelined (
       // jalr
       47'h40000000000: begin
         we_x = 1'b1;
-        rd_data_x = execute_state.pc_x;
+        rd_data_x = execute_state.pc_x + 4;
         pc_x = (rs1_data_x + imm_i_sext) & 32'hfffffffe;
         branch_taken = 1'b1;
       end
@@ -734,7 +753,7 @@ module DatapathPipelined (
       end
       // xor
       47'h2000: begin
-        rd_data_x =rs1_data_x ^ rs2_data_x;
+        rd_data_x = rs1_data_x ^ rs2_data_x;
         we_x = 1;
       end
       // srl
@@ -894,6 +913,13 @@ module DatapathPipelined (
   wm_bypassed_store_data = (wm_bypass) ? writeback_state.rd_data : memory_state.rs2_data_m;
   rd_data_m = memory_state.rd_data;
     case (memory_state.insn_one_hot)
+
+      // fence
+      47'h400000000000: begin
+        store_data_to_dmem = 'd0;
+        store_we_to_dmem = 4'b0000;
+        rd_data_m = 'd0;
+      end
       // lb
       47'h800000000: begin
         case((memory_state.rs1_add_imm_m << 30) >> 30)
