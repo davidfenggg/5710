@@ -211,7 +211,7 @@ module DatapathPipelined (
       f_pc_current <= 32'd0;
       // NB: use CYCLE_NO_STALL since this is the value that will persist after the last reset cycle
       f_cycle_status <= CYCLE_NO_STALL;
-    end else if (load_use_stall) begin
+    end else if (load_use_stall || div_stall_required) begin
     end else if (branch_taken) begin
       f_pc_current <= pc_x;
       f_cycle_status <= CYCLE_NO_STALL;
@@ -246,7 +246,7 @@ module DatapathPipelined (
         insn: 0,
         cycle_status: CYCLE_RESET
       };
-    end else if (load_use_stall) begin
+    end else if (load_use_stall || div_stall_required) begin
       decode_state <= '{
         pc: decode_state.pc,
         insn: decode_state.insn,
@@ -433,6 +433,15 @@ module DatapathPipelined (
           insn_one_hot: 0,
           cycle_status: CYCLE_LOAD2USE
         };
+    end else if (div_stall_required) begin
+        execute_state <= '{
+          pc_x: 0,
+          insn: 0,
+          rs1_data: 0, 
+          rs2_data: 0, 
+          insn_one_hot: 0,
+          cycle_status: CYCLE_DIV2USE
+        };
     end else begin
         execute_state <= '{
           pc_x: decode_state.pc,
@@ -486,13 +495,18 @@ module DatapathPipelined (
   logic [63:0] mul_result;
   logic we_x;
 
-  //MX and WX bypass:
-
+  // MX and WX bypass:
   logic[`REG_SIZE] rs1_data_x, rs2_data_x; 
   wire mx_bypass_rs1 = (insn_rs1_x == insn_rd_m) & (insn_rs1_x != 0);
   wire wx_bypass_rs1 = (insn_rs1_x == insn_rd_w) & (insn_rs1_x != 0);
   wire mx_bypass_rs2 = (insn_rs2_x == insn_rd_m) & (insn_rs2_x != 0);
   wire wx_bypass_rs2 = (insn_rs2_x == insn_rd_w) & (insn_rs2_x != 0);
+
+  // DIV2USE Stall
+  wire div2use_rs1 = (insn_rd_x == insn_rs1_d);
+  wire div2use_rs2 = (insn_rd_x == insn_rs2_d);
+  wire div_execute = (insn_opcode_x == OpcodeRegReg && execute_state.insn[31:25] == 7'd1) && (execute_state.insn[14:12] == 3'b100 || execute_state.insn[14:12] == 3'b101 || execute_state.insn[14:12] == 3'b110 || execute_state.insn[14:12] == 3'b111);
+  wire div_stall_required = (div2use_rs1 || div2use_rs2) && div_execute;
 
   logic halt_x;
 
@@ -532,9 +546,6 @@ module DatapathPipelined (
     .o_quotient(d_quotient)
   );
 
-  //pipelining impl
-  logic div_multi_cycle_op;
-
 
   always_comb begin
     illegal_insn = 1'b0;
@@ -545,7 +556,11 @@ module DatapathPipelined (
     case (execute_state.insn_one_hot)
       // fence
       47'h400000000000: begin
-        
+         we_x = 1'b0;
+         rd_data_x = 'd0;
+         halt_x = 1'b0;
+        // store_data_to_dmem = 'd0;
+        // store_we_to_dmem = 4'b0000;
       end
       // lui
       47'h200000000000: begin
@@ -768,19 +783,27 @@ module DatapathPipelined (
       end
       // div
       47'h10: begin
-        
+        we_x = 1'b1;
+        d_dividend = $unsigned($signed(rs1_data_x) < 0 ? (~rs1_data_x + 1) : rs1_data_x);
+        d_divisor = $unsigned($signed(rs2_data_x) < 0 ? (~rs2_data_x + 1) : rs2_data_x);
       end
       // divu
       47'h8: begin
-        
+        we_x = 1'b1;
+        d_dividend = $unsigned(rs1_data_x);
+        d_divisor = $unsigned(rs2_data_x);
       end
       // rem
       47'h4: begin
-        
+        we_x = 1'b1;
+        d_dividend = $unsigned($signed(rs1_data_x) < 0 ? (~rs1_data_x + 1) : rs1_data_x);
+        d_divisor = $unsigned($signed(rs2_data_x) < 0 ? (~rs2_data_x + 1) : rs2_data_x);
       end
       // remu
       47'h2: begin
-        
+        we_x = 1'b1;
+        d_dividend = $unsigned(rs1_data_x);
+        d_divisor = $unsigned(rs2_data_x);
       end
       // ecall
       47'h1: begin
@@ -862,6 +885,7 @@ module DatapathPipelined (
   assign {insn_funct7_m, insn_rs2_m, insn_rs1_m, insn_funct3_m, insn_rd_m, insn_opcode_m} = memory_state.insn;
   logic [`REG_SIZE] rd_data_m;
   logic [`REG_SIZE] wm_bypassed_store_data;
+  logic result_neg_m;
 
   // actual code logic starts here
   
@@ -987,6 +1011,38 @@ module DatapathPipelined (
       47'h10000000: begin
         store_data_to_dmem = wm_bypassed_store_data;
         store_we_to_dmem = 4'b1111;
+      end
+      // div
+      47'h10: begin
+        result_neg_m = ($signed(memory_state.rs1_data_m) < 0) ^ ($signed(memory_state.rs2_data_m) < 0);
+
+        if (memory_state.rs2_data_m == 0) begin
+            rd_data_m = 32'hFFFFFFFF;
+        end else if (result_neg_m) begin
+            rd_data_m = ~d_quotient + 1;
+        end else begin
+            rd_data_m = d_quotient;
+        end
+      end
+      // divu
+      47'h8: begin
+        rd_data_m = d_quotient;
+      end
+      // rem
+      47'h4: begin
+        result_neg_m = ($signed(memory_state.rs1_data_m) < 0) ? 1 : 0;
+
+        if (memory_state.rs2_data_m == 0) begin
+            rd_data_m = $signed(memory_state.rs1_data_m);
+        end else if (result_neg_m) begin
+            rd_data_m = ~d_remainder + 1;
+        end else begin
+            rd_data_m = d_remainder;
+        end
+      end
+      // remu
+      47'h2: begin
+        rd_data_m = d_remainder;
       end
       default: begin
         
