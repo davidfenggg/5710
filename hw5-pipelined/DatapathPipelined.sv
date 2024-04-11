@@ -517,9 +517,9 @@ module DatapathPipelined (
 
   // MX and WX bypass:
   logic[`REG_SIZE] rs1_data_x, rs2_data_x; 
-  wire mx_bypass_rs1 = (insn_rs1_x == insn_rd_m) & (insn_rs1_x != 0);
+  wire mx_bypass_rs1 = (insn_rs1_x == insn_rd_m) & (insn_rs1_x != 0) & (insn_opcode_m != OpcodeStore);
   wire wx_bypass_rs1 = (insn_rs1_x == insn_rd_w) & (insn_rs1_x != 0);
-  wire mx_bypass_rs2 = (insn_rs2_x == insn_rd_m) & (insn_rs2_x != 0);
+  wire mx_bypass_rs2 = (insn_rs2_x == insn_rd_m) & (insn_rs2_x != 0) & (insn_opcode_m != OpcodeStore);
   wire wx_bypass_rs2 = (insn_rs2_x == insn_rd_w) & (insn_rs2_x != 0);
 
   // DIV2USE Stall
@@ -530,7 +530,7 @@ module DatapathPipelined (
 
   logic halt_x;
 
-  // BYPASSING LOGIC
+  // WX AND MX BYPASSING LOGIC
   always_comb begin
     rs1_data_x = execute_state.rs1_data;
     rs2_data_x = execute_state.rs2_data;
@@ -552,8 +552,8 @@ module DatapathPipelined (
   logic [`REG_SIZE] pc_x; // end
   logic [`REG_SIZE] addr_to_dmem_x;
 
-  logic [`REG_SIZE] rs1_add_imm = rs1_data_x + imm_i_sext;
-  logic [`REG_SIZE] rs1_add_imm_s = rs1_data_x + imm_s_sext;
+  wire [`REG_SIZE] rs1_add_imm = rs1_data_x + imm_i_sext;
+  wire [`REG_SIZE] rs1_add_imm_s = rs1_data_x + imm_s_sext;
 
   logic [`REG_SIZE] d_dividend, d_divisor, d_remainder, d_quotient;
 
@@ -572,6 +572,7 @@ module DatapathPipelined (
     halt_x = 1'b0;
     branch_taken = 1'b0;
     pc_x = 0;
+    addr_to_dmem_x = 0;
 
     case (execute_state.insn_one_hot)
       // fence
@@ -909,9 +910,11 @@ module DatapathPipelined (
   // actual code logic starts here
   
   always_comb begin
-  addr_to_dmem = memory_state.addr_to_dmem_m;
-  wm_bypassed_store_data = (wm_bypass) ? writeback_state.rd_data : memory_state.rs2_data_m;
-  rd_data_m = memory_state.rd_data;
+    addr_to_dmem = memory_state.addr_to_dmem_m;
+    wm_bypassed_store_data = (wm_bypass) ? writeback_state.rd_data : memory_state.rs2_data_m;
+    rd_data_m = memory_state.rd_data;
+    store_data_to_dmem = 'd0;
+    store_we_to_dmem = 4'b0000;
     case (memory_state.insn_one_hot)
 
       // fence
@@ -922,17 +925,17 @@ module DatapathPipelined (
       end
       // lb
       47'h800000000: begin
-        case((memory_state.rs1_add_imm_m << 30) >> 30)
-            32'b00: begin
+        case(memory_state.rs1_add_imm_m[1:0])
+            2'b00: begin
                 rd_data_m = {{24{load_data_from_dmem[7]}}, load_data_from_dmem[7:0]};
             end
-            32'b01: begin
+            2'b01: begin
                 rd_data_m = {{24{load_data_from_dmem[15]}}, load_data_from_dmem[15:8]};
             end
-            32'b10: begin
+            2'b10: begin
                 rd_data_m = {{24{load_data_from_dmem[23]}}, load_data_from_dmem[23:16]};
             end
-            32'b11: begin
+            2'b11: begin
                 rd_data_m = {{24{load_data_from_dmem[31]}}, load_data_from_dmem[31:24]};
             end
             default: begin
@@ -996,7 +999,7 @@ module DatapathPipelined (
       end
       // sb
       47'h40000000: begin
-        case(((memory_state.rs1_data_m + memory_state.imm_s_sext_m) << 30) >> 30) 
+        case((memory_state.rs1_add_imm_s << 30) >> 30) 
           32'b00: begin
             store_data_to_dmem[7:0] = wm_bypassed_store_data[7:0];
             store_we_to_dmem = 4'b0001;
@@ -1020,7 +1023,7 @@ module DatapathPipelined (
 
       // sh
       47'h20000000: begin
-        case(((memory_state.rs1_data_m + memory_state.imm_s_sext_m) << 30) >> 30)
+        case((memory_state.rs1_add_imm_s << 30) >> 30)
             32'b00: begin
                 store_data_to_dmem[15:0] = wm_bypassed_store_data[15:0];
                 store_we_to_dmem = 4'b0011;
