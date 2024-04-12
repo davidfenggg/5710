@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 --------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2020.2 (lin64) Build 3064766 Wed Nov 18 09:12:47 MST 2020
-| Date             : Sun Mar 31 22:07:47 2024
+| Date             : Thu Apr 11 16:56:41 2024
 | Host             : big21.seas.upenn.edu running 64-bit openSUSE Leap 15.5
 | Command          : report_power -file ./vivado_output/post_route_power_report.txt
 | Design           : RiscvSystem
@@ -30,14 +30,14 @@ Table of Contents
 ----------
 
 +--------------------------+--------------+
-| Total On-Chip Power (W)  | 0.216        |
+| Total On-Chip Power (W)  | 0.287        |
 | Design Power Budget (W)  | Unspecified* |
 | Power Budget Margin (W)  | NA           |
-| Dynamic (W)              | 0.108        |
-| Device Static (W)        | 0.108        |
+| Dynamic (W)              | 0.178        |
+| Device Static (W)        | 0.109        |
 | Effective TJA (C/W)      | 11.5         |
-| Max Ambient (C)          | 82.5         |
-| Junction Temperature (C) | 27.5         |
+| Max Ambient (C)          | 81.7         |
+| Junction Temperature (C) | 28.3         |
 | Confidence Level         | Medium       |
 | Setting File             | ---          |
 | Simulation Activity File | ---          |
@@ -52,18 +52,21 @@ Table of Contents
 +----------------+-----------+----------+-----------+-----------------+
 | On-Chip        | Power (W) | Used     | Available | Utilization (%) |
 +----------------+-----------+----------+-----------+-----------------+
-| Clocks         |    <0.001 |        5 |       --- |             --- |
-| Slice Logic    |    <0.001 |      472 |       --- |             --- |
-|   LUT as Logic |    <0.001 |      173 |     53200 |            0.33 |
-|   CARRY4       |    <0.001 |       15 |     13300 |            0.11 |
-|   Register     |    <0.001 |      201 |    106400 |            0.19 |
-|   Others       |     0.000 |       23 |       --- |             --- |
-| Signals        |    <0.001 |      393 |       --- |             --- |
-| Block RAM      |     0.001 |      1.5 |       140 |            1.07 |
+| Clocks         |     0.003 |        5 |       --- |             --- |
+| Slice Logic    |     0.030 |     9680 |       --- |             --- |
+|   LUT as Logic |     0.027 |     5657 |     53200 |           10.63 |
+|   CARRY4       |     0.002 |      571 |     13300 |            4.29 |
+|   Register     |    <0.001 |     2048 |    106400 |            1.92 |
+|   F7/F8 Muxes  |    <0.001 |      388 |     53200 |            0.73 |
+|   BUFG         |    <0.001 |        2 |        32 |            6.25 |
+|   Others       |     0.000 |       31 |       --- |             --- |
+| Signals        |     0.030 |     7887 |       --- |             --- |
+| Block RAM      |     0.009 |      9.5 |       140 |            6.79 |
 | MMCM           |     0.106 |        1 |         4 |           25.00 |
+| DSPs           |    <0.001 |       12 |       220 |            5.45 |
 | I/O            |    <0.001 |       17 |       200 |            8.50 |
-| Static Power   |     0.108 |          |           |                 |
-| Total          |     0.216 |          |           |                 |
+| Static Power   |     0.109 |          |           |                 |
+| Total          |     0.287 |          |           |                 |
 +----------------+-----------+----------+-----------+-----------------+
 
 
@@ -73,7 +76,7 @@ Table of Contents
 +-----------+-------------+-----------+-------------+------------+-------------+-------------+------------+
 | Source    | Voltage (V) | Total (A) | Dynamic (A) | Static (A) | Powerup (A) | Budget (A)  | Margin (A) |
 +-----------+-------------+-----------+-------------+------------+-------------+-------------+------------+
-| Vccint    |       1.000 |     0.010 |       0.003 |      0.008 |       NA    | Unspecified | NA         |
+| Vccint    |       1.000 |     0.080 |       0.071 |      0.008 |       NA    | Unspecified | NA         |
 | Vccaux    |       1.800 |     0.069 |       0.059 |      0.011 |       NA    | Unspecified | NA         |
 | Vcco33    |       3.300 |     0.001 |       0.000 |      0.001 |       NA    | Unspecified | NA         |
 | Vcco25    |       2.500 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
@@ -82,7 +85,7 @@ Table of Contents
 | Vcco135   |       1.350 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
 | Vcco12    |       1.200 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
 | Vccaux_io |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
-| Vccbram   |       1.000 |     0.001 |       0.000 |      0.001 |       NA    | Unspecified | NA         |
+| Vccbram   |       1.000 |     0.002 |       0.001 |      0.001 |       NA    | Unspecified | NA         |
 | MGTAVcc   |       1.000 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
 | MGTAVtt   |       1.200 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
 | MGTVccaux |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
@@ -151,7 +154,11 @@ Table of Contents
 +----------------+-----------+
 | Name           | Power (W) |
 +----------------+-----------+
-| RiscvSystem    |     0.108 |
+| RiscvSystem    |     0.178 |
+|   datapath     |     0.061 |
+|     divider    |     0.046 |
+|     rf         |     0.002 |
+|   mem          |     0.008 |
 |   mmcm         |     0.106 |
 |   oled_device  |     0.002 |
 |     m_OLEDCtrl |     0.002 |

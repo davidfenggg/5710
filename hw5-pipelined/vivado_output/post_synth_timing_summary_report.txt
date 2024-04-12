@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 --------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (lin64) Build 3064766 Wed Nov 18 09:12:47 MST 2020
-| Date         : Sun Mar 31 22:07:25 2024
+| Date         : Thu Apr 11 16:55:58 2024
 | Host         : big21.seas.upenn.edu running 64-bit openSUSE Leap 15.5
 | Command      : report_timing_summary -file ./vivado_output/post_synth_timing_summary_report.txt
 | Design       : RiscvSystem
@@ -39,10 +39,10 @@ check_timing report
 
 Table of Contents
 -----------------
-1. checking no_clock (1551)
+1. checking no_clock (4559)
 2. checking constant_clock (0)
 3. checking pulse_width_clock (0)
-4. checking unconstrained_internal_endpoints (33)
+4. checking unconstrained_internal_endpoints (97)
 5. checking no_input_delay (2)
 6. checking no_output_delay (8)
 7. checking multiple_clock (0)
@@ -52,101 +52,101 @@ Table of Contents
 11. checking partial_output_delay (0)
 12. checking latch_loops (0)
 
-1. checking no_clock (1551)
+1. checking no_clock (4559)
 ---------------------------
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][0]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][0]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][10]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][10]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][11]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][11]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][12]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][12]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][13]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][13]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][14]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][14]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][15]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][15]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][16]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][16]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][17]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][17]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][18]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][18]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][19]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][19]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][1]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][1]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][20]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][20]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][21]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][21]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][22]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][22]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][23]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][23]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][24]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][24]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][25]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][25]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][26]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][26]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][27]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][27]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][28]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][28]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][29]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][29]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][2]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][2]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][30]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][30]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][31]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][31]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][32]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][32]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][33]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][33]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][34]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][34]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][35]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][35]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][36]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][36]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][37]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][37]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][38]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][38]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][39]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][39]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][3]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][3]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][40]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][40]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][41]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][41]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][42]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][42]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][43]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][43]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][44]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][44]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][45]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][45]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][46]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][46]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][4]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][4]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][5]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][5]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][6]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][6]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][7]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][7]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][8]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][8]/Q (HIGH)
 
- There are 33 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][9]/Q (HIGH)
+ There are 97 register/latch pins with no clock driven by root clock pin: datapath/execute_state_reg[insn_one_hot][9]/Q (HIGH)
 
 
 2. checking constant_clock (0)
@@ -159,9 +159,9 @@ Table of Contents
  There are 0 register/latch pins which need pulse_width check
 
 
-4. checking unconstrained_internal_endpoints (33)
+4. checking unconstrained_internal_endpoints (97)
 -------------------------------------------------
- There are 33 pins that are not constrained for maximum delay. (HIGH)
+ There are 97 pins that are not constrained for maximum delay. (HIGH)
 
  There are 0 pins that are not constrained for maximum delay due to constant clock.
 
@@ -220,7 +220,7 @@ Table of Contents
 
     WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
-     16.477        0.000                      0                 2808        0.045        0.000                      0                 2808        3.000        0.000                       0                  1507  
+     12.924        0.000                      0                 3976        0.045        0.000                      0                 3976        3.000        0.000                       0                  2015  
 
 
 All user specified timing constraints are met.
@@ -246,7 +246,7 @@ CLOCK_100MHz          {0.000 5.000}      10.000          100.000
 Clock                     WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
 -----                     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
 CLOCK_100MHz                                                                                                                                                            3.000        0.000                       0                     1  
-  clk_proc_clk_wiz_0       16.477        0.000                      0                 2808        0.045        0.000                      0                 2808       19.500        0.000                       0                  1503  
+  clk_proc_clk_wiz_0       12.924        0.000                      0                 3976        0.045        0.000                      0                 3976       19.500        0.000                       0                  2011  
   clkfbout_clk_wiz_0                                                                                                                                                    7.845        0.000                       0                     3  
 
 
@@ -303,7 +303,7 @@ High Pulse Width  Fast    MMCME2_ADV/CLKIN1  n/a            2.000         5.000 
 From Clock:  clk_proc_clk_wiz_0
   To Clock:  clk_proc_clk_wiz_0
 
-Setup :            0  Failing Endpoints,  Worst Slack       16.477ns,  Total Violation        0.000ns
+Setup :            0  Failing Endpoints,  Worst Slack       12.924ns,  Total Violation        0.000ns
 Hold  :            0  Failing Endpoints,  Worst Slack        0.045ns,  Total Violation        0.000ns
 PW    :            0  Failing Endpoints,  Worst Slack       19.500ns,  Total Violation        0.000ns
 ---------------------------------------------------------------------------------------------------
@@ -311,16 +311,16 @@ PW    :            0  Failing Endpoints,  Worst Slack       19.500ns,  Total Vio
 
 Max Delay Paths
 --------------------------------------------------------------------------------------
-Slack (MET) :             16.477ns  (required time - arrival time)
-  Source:                 mem/mem_reg_0_0/CLKBWRCLK
+Slack (MET) :             12.924ns  (required time - arrival time)
+  Source:                 mem/mem_reg_0_1/CLKARDCLK
                             (falling edge-triggered cell RAMB36E1 clocked by clk_proc_clk_wiz_0  {rise@0.000ns fall@20.000ns period=40.000ns})
-  Destination:            datapath/decode_state_reg[insn][2]/D
+  Destination:            datapath/writeback_state_reg[rd_data][31]/D
                             (rising edge-triggered cell FDRE clocked by clk_proc_clk_wiz_0  {rise@0.000ns fall@20.000ns period=40.000ns})
   Path Group:             clk_proc_clk_wiz_0
   Path Type:              Setup (Max at Slow Process Corner)
   Requirement:            20.000ns  (clk_proc_clk_wiz_0 rise@40.000ns - clk_proc_clk_wiz_0 fall@20.000ns)
-  Data Path Delay:        3.254ns  (logic 2.454ns (75.422%)  route 0.800ns (24.579%))
-  Logic Levels:           0  
+  Data Path Delay:        6.884ns  (logic 3.322ns (48.259%)  route 3.562ns (51.741%))
+  Logic Levels:           7  (LUT3=1 LUT4=1 LUT5=2 LUT6=3)
   Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
     Destination Clock Delay (DCD):    -2.550ns = ( 37.450 - 40.000 ) 
     Source Clock Delay      (SCD):    -1.769ns = ( 18.231 - 20.000 ) 
@@ -343,13 +343,27 @@ Slack (MET) :             16.477ns  (required time - arrival time)
                          net (fo=2, unplaced)         0.584    17.546    mmcm/clk_proc_clk_wiz_0
                          BUFGCTRL (Prop_bufgctrl_I0_O)
                                                       0.101    17.647 f  mmcm/clkout1_buf/O
-                         net (fo=1492, unplaced)      0.584    18.231    mem/mem_reg_0_0_0
-                         RAMB36E1                                     r  mem/mem_reg_0_0/CLKBWRCLK  (IS_INVERTED)
+                         net (fo=1968, unplaced)      0.584    18.231    mem/lopt
+                         RAMB36E1                                     r  mem/mem_reg_0_1/CLKARDCLK  (IS_INVERTED)
   -------------------------------------------------------------------    -------------------
-                         RAMB36E1 (Prop_ramb36e1_CLKBWRCLK_DOBDO[2])
-                                                      2.454    20.685 r  mem/mem_reg_0_0/DOBDO[2]
-                         net (fo=1, unplaced)         0.800    21.484    datapath/insn_from_imem[2]
-                         FDRE                                         r  datapath/decode_state_reg[insn][2]/D
+                         RAMB36E1 (Prop_ramb36e1_CLKARDCLK_DOADO[3])
+                                                      2.454    20.685 r  mem/mem_reg_0_1/DOADO[3]
+                         net (fo=2, unplaced)         0.800    21.484    oled_device/DOADO[3]
+                         LUT5 (Prop_lut5_I2_O)        0.124    21.608 r  oled_device/writeback_state[rd_data][7]_i_5/O
+                         net (fo=2, unplaced)         0.460    22.068    datapath/load_data_to_proc[7]
+                         LUT6 (Prop_lut6_I5_O)        0.124    22.192 r  datapath/writeback_state[rd_data][7]_i_7/O
+                         net (fo=2, unplaced)         0.460    22.652    datapath/writeback_state[rd_data][7]_i_7_n_2
+                         LUT5 (Prop_lut5_I0_O)        0.124    22.776 f  datapath/writeback_state[rd_data][14]_i_10/O
+                         net (fo=2, unplaced)         0.460    23.236    datapath/writeback_state[rd_data][14]_i_10_n_2
+                         LUT3 (Prop_lut3_I1_O)        0.124    23.360 r  datapath/writeback_state[rd_data][14]_i_4/O
+                         net (fo=9, unplaced)         0.490    23.850    datapath/writeback_state[rd_data][14]_i_4_n_2
+                         LUT4 (Prop_lut4_I3_O)        0.124    23.974 r  datapath/writeback_state[rd_data][30]_i_3/O
+                         net (fo=16, unplaced)        0.473    24.447    datapath/divider/writeback_state_reg[rd_data][16]
+                         LUT6 (Prop_lut6_I5_O)        0.124    24.571 r  datapath/divider/writeback_state[rd_data][31]_i_3/O
+                         net (fo=1, unplaced)         0.419    24.990    datapath/divider/writeback_state[rd_data][31]_i_3_n_2
+                         LUT6 (Prop_lut6_I1_O)        0.124    25.114 r  datapath/divider/writeback_state[rd_data][31]_i_1/O
+                         net (fo=1, unplaced)         0.000    25.114    datapath/rd_data_m[31]
+                         FDRE                                         r  datapath/writeback_state_reg[rd_data][31]/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_proc_clk_wiz_0 rise edge)
@@ -363,16 +377,16 @@ Slack (MET) :             16.477ns  (required time - arrival time)
                          net (fo=2, unplaced)         0.439    36.920    mmcm/clk_proc_clk_wiz_0
                          BUFGCTRL (Prop_bufgctrl_I0_O)
                                                       0.091    37.011 r  mmcm/clkout1_buf/O
-                         net (fo=1492, unplaced)      0.439    37.450    datapath/clock_processor
-                         FDRE                                         r  datapath/decode_state_reg[insn][2]/C
+                         net (fo=1968, unplaced)      0.439    37.450    datapath/clock_processor
+                         FDRE                                         r  datapath/writeback_state_reg[rd_data][31]/C
                          clock pessimism              0.636    38.086    
                          clock uncertainty           -0.091    37.995    
-                         FDRE (Setup_fdre_C_D)       -0.033    37.962    datapath/decode_state_reg[insn][2]
+                         FDRE (Setup_fdre_C_D)        0.044    38.039    datapath/writeback_state_reg[rd_data][31]
   -------------------------------------------------------------------
-                         required time                         37.962    
-                         arrival time                         -21.484    
+                         required time                         38.039    
+                         arrival time                         -25.114    
   -------------------------------------------------------------------
-                         slack                                 16.477    
+                         slack                                 12.924    
 
 
 
@@ -449,8 +463,8 @@ Sources:            { mmcm/mmcm_adv_inst/CLKOUT0 }
 Check Type        Corner  Lib Pin             Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location  Pin
 Min Period        n/a     RAMB36E1/CLKARDCLK  n/a            2.944         40.000      37.056               mem/mem_reg_0_0/CLKARDCLK
 Max Period        n/a     MMCME2_ADV/CLKOUT0  n/a            213.360       40.000      173.360              mmcm/mmcm_adv_inst/CLKOUT0
-Low Pulse Width   Fast    FDRE/C              n/a            0.500         20.000      19.500               datapath/execute_state_reg[rs2_data][28]/C
-High Pulse Width  Slow    FDRE/C              n/a            0.500         20.000      19.500               datapath/execute_state_reg[rs2_data][28]/C
+Low Pulse Width   Fast    FDRE/C              n/a            0.500         20.000      19.500               datapath/decode_state_reg[insn][0]/C
+High Pulse Width  Fast    FDRE/C              n/a            0.500         20.000      19.500               oled_device/load_data_reg[0]/C
 
 
 
