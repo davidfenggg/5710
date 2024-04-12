@@ -518,9 +518,9 @@ module DatapathPipelined (
   // MX and WX bypass:
   logic[`REG_SIZE] rs1_data_x, rs2_data_x; 
   wire mx_bypass_rs1 = (insn_rs1_x == insn_rd_m) & (insn_rs1_x != 0) & (insn_opcode_m != OpcodeStore);
-  wire wx_bypass_rs1 = (insn_rs1_x == insn_rd_w) & (insn_rs1_x != 0);
+  wire wx_bypass_rs1 = (insn_rs1_x == insn_rd_w) & (insn_rs1_x != 0) & (insn_opcode_w != OpcodeStore);;
   wire mx_bypass_rs2 = (insn_rs2_x == insn_rd_m) & (insn_rs2_x != 0) & (insn_opcode_m != OpcodeStore);
-  wire wx_bypass_rs2 = (insn_rs2_x == insn_rd_w) & (insn_rs2_x != 0);
+  wire wx_bypass_rs2 = (insn_rs2_x == insn_rd_w) & (insn_rs2_x != 0) & (insn_opcode_w != OpcodeStore);
 
   // DIV2USE Stall
   wire div2use_rs1 = (insn_rd_x == insn_rs1_d);
@@ -944,11 +944,11 @@ module DatapathPipelined (
       end
       // lh
       47'h400000000: begin
-        case(((memory_state.rs1_add_imm_m) << 30) >> 30)
-            32'b00: begin
+        case(memory_state.rs1_add_imm_m[1:0])
+            2'b00: begin
                 rd_data_m = {{16{load_data_from_dmem[15]}}, load_data_from_dmem[15:0]};
             end
-            32'b10: begin
+            2'b10: begin
                 rd_data_m = {{16{load_data_from_dmem[31]}}, load_data_from_dmem[31:16]};
             end
             default: begin
@@ -957,8 +957,8 @@ module DatapathPipelined (
       end
       // lw
       47'h200000000: begin
-        case(((memory_state.rs1_add_imm_m) << 30) >> 30)
-            32'b00: begin
+        case(memory_state.rs1_add_imm_m[1:0])
+            2'b00: begin
                 rd_data_m = load_data_from_dmem;
             end
             default: begin
@@ -967,17 +967,17 @@ module DatapathPipelined (
       end
       // lbu
       47'h100000000: begin
-        case(((memory_state.rs1_add_imm_m) << 30) >> 30)
-            32'b00: begin
+        case(memory_state.rs1_add_imm_m[1:0])
+            2'b00: begin
                 rd_data_m = {24'b0, load_data_from_dmem[7:0]};
             end
-            32'b01: begin
+            2'b01: begin
                 rd_data_m = {24'b0, load_data_from_dmem[15:8]};
             end
-            32'b10: begin
+            2'b10: begin
                 rd_data_m = {24'b0, load_data_from_dmem[23:16]};
             end
-            32'b11: begin
+            2'b11: begin
                 rd_data_m = {24'b0, load_data_from_dmem[31:24]};
             end
             default: begin
@@ -986,11 +986,11 @@ module DatapathPipelined (
       end
       // lhu
       47'h80000000: begin
-        case((memory_state.rs1_add_imm_m << 30) >> 30)
-            32'b00: begin
+        case(memory_state.rs1_add_imm_m[1:0])
+            2'b00: begin
                 rd_data_m = {16'b0, load_data_from_dmem[15:0]};
             end
-            32'b10: begin
+            2'b10: begin
                 rd_data_m = {16'b0, load_data_from_dmem[31:16]};
             end
             default: begin
@@ -1002,18 +1002,24 @@ module DatapathPipelined (
         case((memory_state.rs1_add_imm_s << 30) >> 30) 
           32'b00: begin
             store_data_to_dmem[7:0] = wm_bypassed_store_data[7:0];
+            store_data_to_dmem[31:8] = 24'd0;
             store_we_to_dmem = 4'b0001;
           end
           32'b01: begin
             store_data_to_dmem[15:8] = wm_bypassed_store_data[7:0];
+            store_data_to_dmem[7:0] = 8'd0;
+            store_data_to_dmem[31:16] = 16'd0;
             store_we_to_dmem = 4'b0010;
           end
           32'b10: begin
             store_data_to_dmem[23:16] = wm_bypassed_store_data[7:0];
+            store_data_to_dmem[15:0] = 16'd0;
+            store_data_to_dmem[31:24] = 8'd0;
             store_we_to_dmem = 4'b0100;
           end
           32'b11: begin
             store_data_to_dmem[31:24] = wm_bypassed_store_data[7:0];
+            store_data_to_dmem[23:0] = 24'd0;
             store_we_to_dmem = 4'b1000;
           end
           default: begin
@@ -1026,10 +1032,12 @@ module DatapathPipelined (
         case((memory_state.rs1_add_imm_s << 30) >> 30)
             32'b00: begin
                 store_data_to_dmem[15:0] = wm_bypassed_store_data[15:0];
+                store_data_to_dmem[31:16] = 16'd0;
                 store_we_to_dmem = 4'b0011;
             end
             32'b10: begin
                 store_data_to_dmem[31:16] = wm_bypassed_store_data[15:0];
+                store_data_to_dmem[15:0] = 16'd0;
                 store_we_to_dmem = 4'b1100;
             end
             default: begin
