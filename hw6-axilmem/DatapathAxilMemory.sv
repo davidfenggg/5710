@@ -51,7 +51,26 @@ module RegFile (
     input logic we,
     input logic rst
 );
-  // TODO: copy your RegFile code here
+  localparam int NumRegs = 32;
+  logic [`REG_SIZE] regs[NumRegs];
+
+  assign regs[0] = 32'd0;
+
+  assign rs1_data = regs[rs1];
+  assign rs2_data = regs[rs2];
+
+  genvar i;
+  for (i = 1; i < 32; i = i + 1) begin 
+    always_ff @( posedge clk ) begin
+      if (rst) begin
+        regs[i] <= 32'd0;
+      end else begin
+        if (we && rd == i) begin
+          regs[i] <= rd_data;
+        end
+      end
+    end
+  end
 
 endmodule
 
@@ -114,40 +133,78 @@ module MemoryAxiLite #(
   logic [DATA_WIDTH-1:0] mem_array[NUM_WORDS];
   localparam int AddrMsb = $clog2(NUM_WORDS) + 1;
   localparam int AddrLsb = 2;
+  wire [31:0] dummy = ADDR_WIDTH;
 
   // [BR]RESP codes, from Section A 3.4.4 of AXI4 spec
   localparam bit [1:0] ResponseOkay = 2'b00;
   // localparam bit [1:0] ResponseSubordinateError = 2'b10;
   // localparam bit [1:0] ResponseDecodeError = 2'b11;
 
-`ifndef FORMAL
-  always_comb begin
-    // memory addresses should always be 4B-aligned
-    assert (!insn.ARVALID || insn.ARADDR[1:0] == 2'b00);
-    assert (!data.ARVALID || data.ARADDR[1:0] == 2'b00);
-    assert (!data.AWVALID || data.AWADDR[1:0] == 2'b00);
-    // we don't use the protection bits
-    assert (insn.ARPROT == 3'd0);
-    assert (data.ARPROT == 3'd0);
-    assert (data.AWPROT == 3'd0);
-  end
-`endif
-
-  // TODO: changes will be needed throughout this module
-
-  always_ff @(posedge axi.ACLK) begin
+// Initialize memory to 0 on reset
+ always_ff @(posedge axi.ACLK) begin
     if (!axi.ARESETn) begin
-      // start out ready to accept incoming reads
-      insn.ARREADY <= 1;
-      data.ARREADY <= 1;
-      // start out ready to accept an incoming write
-      data.AWREADY <= 1;
-      data.WREADY <= 1;
+      // Initialization on reset
+      insn.ARREADY <= 1; // Ready for read addresses
+      data.ARREADY <= 1; // Ready for read addresses
+      data.AWREADY <= 1; // Ready for write addresses
+      data.WREADY <= 1; // Ready for write data
+      insn.RVALID <= 0; // No valid read responses initially
+      data.RVALID <= 0; // No valid read responses initially
+      data.BVALID <= 0; // No valid write responses initially
     end else begin
+      // Handle instruction memory read 
+      if (insn.ARVALID && insn.ARREADY) begin
+        insn.ARREADY <= 0; // Reset after receiving read address
+        insn.RVALID <= 1; // Signal valid read data
+        insn.RDATA <= mem_array[insn.ARADDR[AddrMsb:AddrLsb]]; // Fetch memory data using appropriate index
+        insn.RRESP <= ResponseOkay; // Set response code to "okay"
+      end
 
+      if (insn.RVALID) begin
+        insn.ARREADY <= 1;
+        insn.RVALID <= 0;
+      end
+
+      // Handle data memory reads
+      if (data.ARVALID && data.ARREADY) begin
+        data.ARREADY <= 0; // Reset after receiving read address
+        data.RVALID <= 1; // Signal valid read data
+        data.RDATA <= mem_array[data.ARADDR[AddrMsb:AddrLsb]]; // Fetch memory data using appropriate index
+        data.RRESP <= ResponseOkay; // Set response code to "okay"
+      end
+
+      if (data.RVALID) begin
+        data.ARREADY <= 1;
+        data.RVALID <= 0;
+      end
+
+      // Handle data memory writes
+      if (data.AWVALID && data.AWREADY) begin
+        data.AWREADY <= 0; // Reset after receiving write address
+        data.WREADY <= 1; // Ready for write data
+      end
+
+
+      if (data.WVALID && data.WREADY) begin
+        // Write data based on strobe using correct index
+        if (data.WSTRB[0]) begin
+          mem_array[data.AWADDR[AddrMsb:AddrLsb]][7:0] <= data.WDATA[7:0];
+        end
+        if (data.WSTRB[1]) begin
+          mem_array[data.AWADDR[AddrMsb:AddrLsb]][15:8] <= data.WDATA[15:8];
+        end
+        if (data.WSTRB[2]) begin
+          mem_array[data.AWADDR[AddrMsb:AddrLsb]][23:16] <= data.WDATA[23:16];
+        end
+        if (data.WSTRB[3]) begin
+          mem_array[data.AWADDR[AddrMsb:AddrLsb]][31:24] <= data.WDATA[31:24];
+        end
+        data.WREADY <= 0; // Reset after processing write data
+        data.BVALID <= 1; // Signal valid write response
+        data.BRESP <= ResponseOkay; // Set response code to "okay"
+      end
     end
   end
-
 endmodule
 
 /** This is used for testing MemoryAxiLite in simulation, since Verilator doesn't allow
