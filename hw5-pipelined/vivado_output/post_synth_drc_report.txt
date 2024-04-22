@@ -1,8 +1,8 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (lin64) Build 3064766 Wed Nov 18 09:12:47 MST 2020
-| Date         : Thu Apr 11 16:56:01 2024
-| Host         : big21.seas.upenn.edu running 64-bit openSUSE Leap 15.5
+| Date         : Fri Apr 12 09:43:45 2024
+| Host         : big05.seas.upenn.edu running 64-bit openSUSE Leap 15.5
 | Command      : report_drc -file ./vivado_output/post_synth_drc_report.txt
 | Design       : RiscvSystem
 | Device       : xc7z020clg484-1
@@ -280,16 +280,16 @@ Related violations: <none>
 PLHOLDVIO-2#1 Warning
 Non-Optimal connections which could lead to hold violations  
 A LUT mem_reg_0_0_i_1 is driving clock pin of 33 cells. This could lead to large hold time violations. Involved cells are:
-writeback_state_reg[rd_data][0]_i_5, writeback_state_reg[rd_data][10]_i_8,
-writeback_state_reg[rd_data][11]_i_9, writeback_state_reg[rd_data][12]_i_9,
-writeback_state_reg[rd_data][13]_i_9,
-writeback_state_reg[rd_data][14]_i_11,
-writeback_state_reg[rd_data][16]_i_12,
-writeback_state_reg[rd_data][17]_i_6, writeback_state_reg[rd_data][18]_i_6,
-writeback_state_reg[rd_data][19]_i_6, writeback_state_reg[rd_data][1]_i_5,
-writeback_state_reg[rd_data][20]_i_12,
-writeback_state_reg[rd_data][21]_i_6, writeback_state_reg[rd_data][22]_i_6,
-writeback_state_reg[rd_data][23]_i_6 (the first 15 of 33 listed)
+writeback_state_reg[rd_data][0]_i_10, writeback_state_reg[rd_data][11]_i_8,
+writeback_state_reg[rd_data][16]_i_18,
+writeback_state_reg[rd_data][1]_i_11, writeback_state_reg[rd_data][1]_i_7,
+writeback_state_reg[rd_data][24]_i_18,
+writeback_state_reg[rd_data][25]_i_8, writeback_state_reg[rd_data][27]_i_8,
+writeback_state_reg[rd_data][2]_i_10, writeback_state_reg[rd_data][2]_i_11,
+writeback_state_reg[rd_data][2]_i_12, writeback_state_reg[rd_data][2]_i_15,
+writeback_state_reg[rd_data][31]_i_34,
+writeback_state_reg[rd_data][31]_i_35,
+writeback_state_reg[rd_data][31]_i_48 (the first 15 of 33 listed)
 Related violations: <none>
 
 ZPS7-1#1 Warning
