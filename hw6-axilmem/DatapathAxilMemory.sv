@@ -395,6 +395,8 @@ typedef struct packed {
   logic [`REG_SIZE] pc;
   logic [`REG_SIZE] rd_data; //for write data
   logic [`INSN_SIZE] insn;
+  logic [46:0] insn_one_hot;
+  logic [`REG_SIZE] rs1_add_imm_w;
   logic reg_we_w;
   logic [4:0] rd;
   logic halt_w;
@@ -413,12 +415,12 @@ module DatapathAxilMemory (
     axi_if.manager imem,
 
     // Once imem is working, replace this interface to dmem...
-    output logic [`REG_SIZE] addr_to_dmem,
-    input wire [`REG_SIZE] load_data_from_dmem,
-    output logic [`REG_SIZE] store_data_to_dmem,
-    output logic [3:0] store_we_to_dmem,
+    // output logic [`REG_SIZE] addr_to_dmem,
+    // input wire [`REG_SIZE] load_data_from_dmem,
+    // output logic [`REG_SIZE] store_data_to_dmem,
+    // output logic [3:0] store_we_to_dmem,
     // ...with this AXIL one
-    // axi_if.manager dmem,
+    axi_if.manager dmem,
 
     output logic halt,
 
@@ -650,24 +652,25 @@ module DatapathAxilMemory (
   logic [`REG_SIZE] rs1_data_decoded, rs2_data_decoded;
 
   always_comb begin
-    rs1_data_decoded = (writeback_state.reg_we_w && writeback_state.rd == insn_rs1_d && writeback_state.rd != 0) ? writeback_state.rd_data : rs1_data_d;
-    rs2_data_decoded = (writeback_state.reg_we_w && writeback_state.rd == insn_rs2_d && writeback_state.rd != 0) ? writeback_state.rd_data : rs2_data_d;
+    rs1_data_decoded = (writeback_state.reg_we_w && writeback_state.rd == insn_rs1_d && writeback_state.rd != 0) ? rd_data_wr : rs1_data_d;
+    rs2_data_decoded = (writeback_state.reg_we_w && writeback_state.rd == insn_rs2_d && writeback_state.rd != 0) ? rd_data_wr : rs2_data_d;
   end
 
   // Load-Use Stalling
   wire load_in_execute = insn_opcode_x == OpcodeLoad;
+  // wire load_in_memory = insn_opcode_m == OpcodeLoad;
   wire rs1_conflict = (insn_rs1_d == insn_rd_x & insn_rs1_d != 0);
   wire rs2_conflict = (insn_rs2_d == insn_rd_x & insn_rs2_d != 0);
   wire r_s_b_insn = (insn_opcode == OpcodeRegReg | insn_opcode == OpcodeStore | insn_opcode == OpcodeBranch);
   wire not_store = (insn_opcode != OpcodeStore);
-  wire load_use_stall = (load_in_execute & (rs1_conflict | (rs2_conflict & not_store & r_s_b_insn))) ? 1 : 0;
+  wire load_use_stall = ((load_in_execute) & (rs1_conflict | (rs2_conflict & not_store & r_s_b_insn))) ? 1 : 0;
 
   // TODO: Need to change such that only rs1 and rs2 are modified in this cycle -- rd should be modified during the writeback phase
   RegFile rf (
     .clk(clk),
     .rst(rst),
     .rd(insn_rd_w), // should refer to the insn in the writeback phase
-    .rd_data(writeback_state.rd_data), // also refers to the data being produced after execution
+    .rd_data(rd_data_wr), // also refers to the data being produced after execution
     .rs1(insn_rs1_d),
     .rs1_data(rs1_data_d),
     .rs2(insn_rs2_d),
@@ -799,13 +802,13 @@ module DatapathAxilMemory (
     rs1_data_x = execute_state.rs1_data;
     rs2_data_x = execute_state.rs2_data;
     if (wx_bypass_rs1 & insn_opcode_w != OpcodeBranch) begin
-      rs1_data_x = writeback_state.rd_data;
+      rs1_data_x = rd_data_wr;
     end
     if (mx_bypass_rs1 & insn_opcode_m != OpcodeBranch) begin
       rs1_data_x = memory_state.rd_data;
     end 
     if (wx_bypass_rs2 & insn_opcode_w != OpcodeBranch) begin
-      rs2_data_x = writeback_state.rd_data;
+      rs2_data_x = rd_data_wr;
     end
     if (mx_bypass_rs2 & insn_opcode_m != OpcodeBranch) begin
       rs2_data_x = memory_state.rd_data;
@@ -1174,117 +1177,126 @@ module DatapathAxilMemory (
   // actual code logic starts here
   
   always_comb begin
-    addr_to_dmem = memory_state.addr_to_dmem_m;
-    wm_bypassed_store_data = (wm_bypass) ? writeback_state.rd_data : memory_state.rs2_data_m;
+    dmem.ARADDR = memory_state.addr_to_dmem_m;
+    dmem.AWADDR = memory_state.addr_to_dmem_m;
+    dmem.ARVALID = 1;
+    dmem.RREADY = 1;
+    dmem.AWVALID = 0;
+    dmem.WVALID = 0;
+    
+    wm_bypassed_store_data = (wm_bypass) ? rd_data_wr : memory_state.rs2_data_m;
     rd_data_m = memory_state.rd_data;
-    store_data_to_dmem = 'd0;
-    store_we_to_dmem = 4'b0000;
+    // store_data_to_dmem = 'd0;
+    // store_we_to_dmem = 4'b0000;
     case (memory_state.insn_one_hot)
 
       // fence
       47'h400000000000: begin
-        store_data_to_dmem = 'd0;
-        store_we_to_dmem = 4'b0000;
+        // store_data_to_dmem = 'd0;
+        // store_we_to_dmem = 4'b0000;
+        dmem.ARVALID = 0;
         rd_data_m = 'd0;
       end
-      // lb
-      47'h800000000: begin
-        case(memory_state.rs1_add_imm_m[1:0])
-            2'b00: begin
-                rd_data_m = {{24{load_data_from_dmem[7]}}, load_data_from_dmem[7:0]};
-            end
-            2'b01: begin
-                rd_data_m = {{24{load_data_from_dmem[15]}}, load_data_from_dmem[15:8]};
-            end
-            2'b10: begin
-                rd_data_m = {{24{load_data_from_dmem[23]}}, load_data_from_dmem[23:16]};
-            end
-            2'b11: begin
-                rd_data_m = {{24{load_data_from_dmem[31]}}, load_data_from_dmem[31:24]};
-            end
-            default: begin
-            end
-        endcase
-      end
-      // lh
-      47'h400000000: begin
-        case(memory_state.rs1_add_imm_m[1:0])
-            2'b00: begin
-                rd_data_m = {{16{load_data_from_dmem[15]}}, load_data_from_dmem[15:0]};
-            end
-            2'b10: begin
-                rd_data_m = {{16{load_data_from_dmem[31]}}, load_data_from_dmem[31:16]};
-            end
-            default: begin
-            end
-        endcase
-      end
-      // lw
-      47'h200000000: begin
-        case(memory_state.rs1_add_imm_m[1:0])
-            2'b00: begin
-                rd_data_m = load_data_from_dmem;
-            end
-            default: begin
-            end
-        endcase
-      end
-      // lbu
-      47'h100000000: begin
-        case(memory_state.rs1_add_imm_m[1:0])
-            2'b00: begin
-                rd_data_m = {24'b0, load_data_from_dmem[7:0]};
-            end
-            2'b01: begin
-                rd_data_m = {24'b0, load_data_from_dmem[15:8]};
-            end
-            2'b10: begin
-                rd_data_m = {24'b0, load_data_from_dmem[23:16]};
-            end
-            2'b11: begin
-                rd_data_m = {24'b0, load_data_from_dmem[31:24]};
-            end
-            default: begin
-            end
-        endcase
-      end
-      // lhu
-      47'h80000000: begin
-        case(memory_state.rs1_add_imm_m[1:0])
-            2'b00: begin
-                rd_data_m = {16'b0, load_data_from_dmem[15:0]};
-            end
-            2'b10: begin
-                rd_data_m = {16'b0, load_data_from_dmem[31:16]};
-            end
-            default: begin
-            end
-        endcase
-      end
+      // // lb
+      // 47'h800000000: begin
+      //   case(memory_state.rs1_add_imm_m[1:0])
+      //       2'b00: begin
+      //           rd_data_m = {{24{load_data_from_dmem[7]}}, load_data_from_dmem[7:0]};
+      //       end
+      //       2'b01: begin
+      //           rd_data_m = {{24{load_data_from_dmem[15]}}, load_data_from_dmem[15:8]};
+      //       end
+      //       2'b10: begin
+      //           rd_data_m = {{24{load_data_from_dmem[23]}}, load_data_from_dmem[23:16]};
+      //       end
+      //       2'b11: begin
+      //           rd_data_m = {{24{load_data_from_dmem[31]}}, load_data_from_dmem[31:24]};
+      //       end
+      //       default: begin
+      //       end
+      //   endcase
+      // end
+      // // lh
+      // 47'h400000000: begin
+      //   case(memory_state.rs1_add_imm_m[1:0])
+      //       2'b00: begin
+      //           rd_data_m = {{16{load_data_from_dmem[15]}}, load_data_from_dmem[15:0]};
+      //       end
+      //       2'b10: begin
+      //           rd_data_m = {{16{load_data_from_dmem[31]}}, load_data_from_dmem[31:16]};
+      //       end
+      //       default: begin
+      //       end
+      //   endcase
+      // end
+      // // lw
+      // 47'h200000000: begin
+      //   case(memory_state.rs1_add_imm_m[1:0])
+      //       2'b00: begin
+      //           rd_data_m = load_data_from_dmem;
+      //       end
+      //       default: begin
+      //       end
+      //   endcase
+      // end
+      // // lbu
+      // 47'h100000000: begin
+      //   case(memory_state.rs1_add_imm_m[1:0])
+      //       2'b00: begin
+      //           rd_data_m = {24'b0, load_data_from_dmem[7:0]};
+      //       end
+      //       2'b01: begin
+      //           rd_data_m = {24'b0, load_data_from_dmem[15:8]};
+      //       end
+      //       2'b10: begin
+      //           rd_data_m = {24'b0, load_data_from_dmem[23:16]};
+      //       end
+      //       2'b11: begin
+      //           rd_data_m = {24'b0, load_data_from_dmem[31:24]};
+      //       end
+      //       default: begin
+      //       end
+      //   endcase
+      // end
+      // // lhu
+      // 47'h80000000: begin
+      //   case(memory_state.rs1_add_imm_m[1:0])
+      //       2'b00: begin
+      //           rd_data_m = {16'b0, load_data_from_dmem[15:0]};
+      //       end
+      //       2'b10: begin
+      //           rd_data_m = {16'b0, load_data_from_dmem[31:16]};
+      //       end
+      //       default: begin
+      //       end
+      //   endcase
+      // end
       // sb
       47'h40000000: begin
+        dmem.AWVALID = 1;
+        dmem.WVALID = 1;
         case((memory_state.rs1_add_imm_s << 30) >> 30) 
           32'b00: begin
-            store_data_to_dmem[7:0] = wm_bypassed_store_data[7:0];
-            store_data_to_dmem[31:8] = 24'd0;
-            store_we_to_dmem = 4'b0001;
+            dmem.WDATA[7:0] = wm_bypassed_store_data[7:0];
+            dmem.WDATA[31:8] = 24'd0;
+            dmem.WSTRB = 4'b0001;
           end
           32'b01: begin
-            store_data_to_dmem[15:8] = wm_bypassed_store_data[7:0];
-            store_data_to_dmem[7:0] = 8'd0;
-            store_data_to_dmem[31:16] = 16'd0;
-            store_we_to_dmem = 4'b0010;
+            dmem.WDATA[15:8] = wm_bypassed_store_data[7:0];
+            dmem.WDATA[7:0] = 8'd0;
+            dmem.WDATA[31:16] = 16'd0;
+            dmem.WSTRB = 4'b0010;
           end
           32'b10: begin
-            store_data_to_dmem[23:16] = wm_bypassed_store_data[7:0];
-            store_data_to_dmem[15:0] = 16'd0;
-            store_data_to_dmem[31:24] = 8'd0;
-            store_we_to_dmem = 4'b0100;
+            dmem.WDATA[23:16] = wm_bypassed_store_data[7:0];
+            dmem.WDATA[15:0] = 16'd0;
+            dmem.WDATA[31:24] = 8'd0;
+            dmem.WSTRB = 4'b0100;
           end
           32'b11: begin
-            store_data_to_dmem[31:24] = wm_bypassed_store_data[7:0];
-            store_data_to_dmem[23:0] = 24'd0;
-            store_we_to_dmem = 4'b1000;
+            dmem.WDATA[31:24] = wm_bypassed_store_data[7:0];
+            dmem.WDATA[23:0] = 24'd0;
+            dmem.WSTRB = 4'b1000;
           end
           default: begin
           end
@@ -1293,16 +1305,18 @@ module DatapathAxilMemory (
 
       // sh
       47'h20000000: begin
+        dmem.AWVALID = 1;
+        dmem.WVALID = 1;
         case((memory_state.rs1_add_imm_s << 30) >> 30)
             32'b00: begin
-                store_data_to_dmem[15:0] = wm_bypassed_store_data[15:0];
-                store_data_to_dmem[31:16] = 16'd0;
-                store_we_to_dmem = 4'b0011;
+                dmem.WDATA[15:0] = wm_bypassed_store_data[15:0];
+                dmem.WDATA[31:16] = 16'd0;
+                dmem.WSTRB = 4'b0011;
             end
             32'b10: begin
-                store_data_to_dmem[31:16] = wm_bypassed_store_data[15:0];
-                store_data_to_dmem[15:0] = 16'd0;
-                store_we_to_dmem = 4'b1100;
+                dmem.WDATA[31:16] = wm_bypassed_store_data[15:0];
+                dmem.WDATA[15:0] = 16'd0;
+                dmem.WSTRB = 4'b1100;
             end
             default: begin
             end
@@ -1310,8 +1324,10 @@ module DatapathAxilMemory (
       end
       // sw
       47'h10000000: begin
-        store_data_to_dmem = wm_bypassed_store_data;
-        store_we_to_dmem = 4'b1111;
+        dmem.AWVALID = 1;
+        dmem.WVALID = 1;
+        dmem.WDATA = wm_bypassed_store_data;
+        dmem.WSTRB = 4'b1111;
       end
       // div
       47'h10: begin
@@ -1373,6 +1389,8 @@ module DatapathAxilMemory (
         reg_we_w: 0,
         rd: 0,
         halt_w: 0,
+        insn_one_hot: 0,
+        rs1_add_imm_w: 0,
         cycle_status: CYCLE_RESET
       };
     end else begin
@@ -1383,7 +1401,9 @@ module DatapathAxilMemory (
           rd_data: rd_data_m,
           reg_we_w: memory_state.reg_we_m,
           rd: memory_state.rd,
+          insn_one_hot: memory_state.insn_one_hot,
           halt_w: memory_state.halt_m,
+          rs1_add_imm_w: memory_state.rs1_add_imm_m,
           cycle_status: memory_state.cycle_status
         };
       end
@@ -1391,7 +1411,7 @@ module DatapathAxilMemory (
   end
 
   logic we_w = writeback_state.reg_we_w;
-  logic [`REG_SIZE] rd_data_w = writeback_state.rd_data;
+  //wire [`REG_SIZE] rd_data_w = writeback_state.rd_data;
   assign halt = writeback_state.halt_w;
 
   // components of the instruction
@@ -1408,6 +1428,90 @@ module DatapathAxilMemory (
 
   // split R-type instruction - see section 2.2 of RiscV spec
   assign {insn_funct7_w, insn_rs2_w, insn_rs1_w, insn_funct3_w, insn_rd_w, insn_opcode_w} = writeback_state.insn;
+
+  logic [`REG_SIZE] rd_data_wr;
+
+  always_comb begin
+    rd_data_wr = writeback_state.rd_data;
+    case (writeback_state.insn_one_hot)
+      // lb
+      47'h800000000: begin
+        case(writeback_state.rs1_add_imm_w[1:0])
+            2'b00: begin
+                rd_data_wr = {{24{dmem.RDATA[7]}}, dmem.RDATA[7:0]};
+            end
+            2'b01: begin
+                rd_data_wr = {{24{dmem.RDATA[15]}}, dmem.RDATA[15:8]};
+            end
+            2'b10: begin
+                rd_data_wr = {{24{dmem.RDATA[23]}}, dmem.RDATA[23:16]};
+            end
+            2'b11: begin
+                rd_data_wr = {{24{dmem.RDATA[31]}}, dmem.RDATA[31:24]};
+            end
+            default: begin
+            end
+        endcase
+      end
+      // lh
+      47'h400000000: begin
+        case(writeback_state.rs1_add_imm_w[1:0])
+            2'b00: begin
+                rd_data_wr = {{16{dmem.RDATA[15]}}, dmem.RDATA[15:0]};
+            end
+            2'b10: begin
+                rd_data_wr = {{16{dmem.RDATA[31]}}, dmem.RDATA[31:16]};
+            end
+            default: begin
+            end
+        endcase
+      end
+      // lw
+      47'h200000000: begin
+        case(writeback_state.rs1_add_imm_w[1:0])
+            2'b00: begin
+                rd_data_wr = dmem.RDATA;
+            end
+            default: begin
+            end
+        endcase
+      end
+      // lbu
+      47'h100000000: begin
+        case(writeback_state.rs1_add_imm_w[1:0])
+            2'b00: begin
+                rd_data_wr = {24'b0, dmem.RDATA[7:0]};
+            end
+            2'b01: begin
+                rd_data_wr = {24'b0, dmem.RDATA[15:8]};
+            end
+            2'b10: begin
+                rd_data_wr = {24'b0, dmem.RDATA[23:16]};
+            end
+            2'b11: begin
+                rd_data_wr = {24'b0, dmem.RDATA[31:24]};
+            end
+            default: begin
+            end
+        endcase
+      end
+      // lhu
+      47'h80000000: begin
+        case(writeback_state.rs1_add_imm_w[1:0])
+            2'b00: begin
+                rd_data_wr = {16'b0, dmem.RDATA[15:0]};
+            end
+            2'b10: begin
+                rd_data_wr = {16'b0, dmem.RDATA[31:16]};
+            end
+            default: begin
+            end
+        endcase
+      end
+    endcase
+  end
+
+
 
   wire [(8*32)-1:0] w_disasm;
   Disasm #(
@@ -1535,12 +1639,12 @@ module RiscvProcessor (
       .clk(clk),
       .rst(rst),
       .imem(axi_insn.manager),
-      // .dmem(axi_data.manager),
+      .dmem(axi_data.manager),
       .halt(halt),
-      .addr_to_dmem(mem_data_addr),
-      .store_data_to_dmem(mem_data_to_write),
-      .store_we_to_dmem(mem_data_we),
-      .load_data_from_dmem(mem_data_loaded_value),
+      // .addr_to_dmem(mem_data_addr),
+      // .store_data_to_dmem(mem_data_to_write),
+      // .store_we_to_dmem(mem_data_we),
+      // .load_data_from_dmem(mem_data_loaded_value),
       .trace_writeback_pc(trace_writeback_pc),
       .trace_writeback_insn(trace_writeback_insn),
       .trace_writeback_cycle_status(trace_writeback_cycle_status)
