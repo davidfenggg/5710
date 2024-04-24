@@ -140,6 +140,19 @@ module MemoryAxiLite #(
   // localparam bit [1:0] ResponseSubordinateError = 2'b10;
   // localparam bit [1:0] ResponseDecodeError = 2'b11;
 
+`ifndef FORMAL
+  always_comb begin
+    // memory addresses should always be 4B-aligned
+    assert (!insn.ARVALID || insn.ARADDR[1:0] == 2'b00);
+    assert (!data.ARVALID || data.ARADDR[1:0] == 2'b00);
+    assert (!data.AWVALID || data.AWADDR[1:0] == 2'b00);
+    // we don't use the protection bits
+    assert (insn.ARPROT == 3'd0);
+    assert (data.ARPROT == 3'd0);
+    assert (data.AWPROT == 3'd0);
+  end
+`endif
+
 // Initialize memory to 0 on reset
  always_ff @(posedge axi.ACLK) begin
     if (!axi.ARESETn) begin
@@ -154,33 +167,33 @@ module MemoryAxiLite #(
     end else begin
       // Handle instruction memory read 
       if (insn.ARVALID && insn.ARREADY) begin
-        insn.ARREADY <= 0; // Reset after receiving read address
+        // insn.ARREADY <= 0; // Reset after receiving read address
         insn.RVALID <= 1; // Signal valid read data
         insn.RDATA <= mem_array[insn.ARADDR[AddrMsb:AddrLsb]]; // Fetch memory data using appropriate index
         insn.RRESP <= ResponseOkay; // Set response code to "okay"
       end
 
       if (insn.RVALID) begin
-        insn.ARREADY <= 1;
-        insn.RVALID <= 0;
+        // insn.ARREADY <= 1;
+        // insn.RVALID <= 0;
       end
 
       // Handle data memory reads
       if (data.ARVALID && data.ARREADY) begin
-        data.ARREADY <= 0; // Reset after receiving read address
+        // data.ARREADY <= 0; // Reset after receiving read address
         data.RVALID <= 1; // Signal valid read data
         data.RDATA <= mem_array[data.ARADDR[AddrMsb:AddrLsb]]; // Fetch memory data using appropriate index
         data.RRESP <= ResponseOkay; // Set response code to "okay"
       end
 
       if (data.RVALID) begin
-        data.ARREADY <= 1;
-        data.RVALID <= 0;
+        // data.ARREADY <= 1;
+        // data.RVALID <= 0;
       end
 
       // Handle data memory writes
       if (data.AWVALID && data.AWREADY) begin
-        data.AWREADY <= 0; // Reset after receiving write address
+        // data.AWREADY <= 0; // Reset after receiving write address
         data.WREADY <= 1; // Ready for write data
       end
 
@@ -199,7 +212,7 @@ module MemoryAxiLite #(
         if (data.WSTRB[3]) begin
           mem_array[data.AWADDR[AddrMsb:AddrLsb]][31:24] <= data.WDATA[31:24];
         end
-        data.WREADY <= 0; // Reset after processing write data
+        // data.WREADY <= 0; // Reset after processing write data
         data.BVALID <= 1; // Signal valid write response
         data.BRESP <= ResponseOkay; // Set response code to "okay"
       end
