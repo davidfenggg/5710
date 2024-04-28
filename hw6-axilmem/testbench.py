@@ -306,6 +306,11 @@ async def testLoadFalseUse(dut):
     await ClockCycles(dut.clk, 7)
     assert dut.datapath.rf.regs[1].value == 0xFE00_7000, f'failed at cycle {dut.datapath.cycles_current.value.integer}'
     pass
+  
+@cocotb.test()
+async def testOneRiscvTest(dut):
+    "Use this to run one particular riscv test"
+    await riscvTest(dut, RISCV_TESTS_PATH / 'rv32ui-p-fence_i')
 
 @cocotb.test(skip='RVTEST_ALUBR' in os.environ)
 async def testWMData(dut):

@@ -368,6 +368,7 @@ typedef struct packed {
   logic [`INSN_SIZE] insn;
   logic [`REG_SIZE] rs1_data, rs2_data;
   logic [46:0] insn_one_hot;
+  logic [`REG_SIZE] stalled_insn;
   cycle_status_e cycle_status;
 } stage_execute_t;
 
@@ -464,7 +465,7 @@ module DatapathAxilMemory (
   /*****************************************************/
 
   logic [`REG_SIZE] f_pc_current;
-  // wire [`REG_SIZE] f_insn;
+  logic [`REG_SIZE] f_insn = 0;
   cycle_status_e f_cycle_status;
 
   // program counter
@@ -473,6 +474,7 @@ module DatapathAxilMemory (
       f_pc_current <= 32'd0;
       f_cycle_status <= CYCLE_NO_STALL;
     end else if (load_use_stall || div_stall_required) begin
+      f_pc_current <= f_pc_current;
     end else if (store_in_execute || store_in_memory) begin
     end else if (branch_taken) begin
       f_pc_current <= pc_x;
@@ -531,7 +533,7 @@ module DatapathAxilMemory (
     end else begin
       decode_state <= '{
         pc: f_pc_current,
-        insn: 0,
+        insn: f_insn,
         cycle_status: f_cycle_status
       };
     end
@@ -555,7 +557,8 @@ module DatapathAxilMemory (
   wire [2:0] insn_funct3_d;
   wire [4:0] insn_rd_d;
   wire [`OPCODE_SIZE] insn_opcode;
-  wire [`REG_SIZE] insn_d = (branch_taken | rst) ? decode_state.insn : imem.RDATA;
+  wire [`REG_SIZE] insn_d = (execute_state.cycle_status == CYCLE_LOAD2USE | execute_state.cycle_status == CYCLE_DIV2USE) ? execute_state.stalled_insn : (branch_taken | rst) ? decode_state.insn : imem.RDATA;
+  wire [`REG_SIZE] stalled_insn_d = insn_d;
 
   // split R-type instruction - see section 2.2 of RiscV spec
 
@@ -688,6 +691,7 @@ module DatapathAxilMemory (
       execute_state <= '{
         pc_x: 0,
         insn: 0,
+        stalled_insn: 0,
         rs1_data: 0,
         rs2_data: 0,
         insn_one_hot: 0,
@@ -697,6 +701,7 @@ module DatapathAxilMemory (
         execute_state <= '{
           pc_x: 0,
           insn: 0,
+          stalled_insn: 0,
           rs1_data: 0, 
           rs2_data: 0, 
           insn_one_hot: 0,
@@ -706,6 +711,7 @@ module DatapathAxilMemory (
         execute_state <= '{
           pc_x: 0,
           insn: 0,
+          stalled_insn: stalled_insn_d,
           rs1_data: 0, 
           rs2_data: 0, 
           insn_one_hot: 0,
@@ -715,6 +721,7 @@ module DatapathAxilMemory (
         execute_state <= '{
           pc_x: 0,
           insn: 0,
+          stalled_insn: 0,
           rs1_data: 0, 
           rs2_data: 0, 
           insn_one_hot: 0,
@@ -724,6 +731,7 @@ module DatapathAxilMemory (
         execute_state <= '{
           pc_x: 0,
           insn: 0,
+          stalled_insn: stalled_insn_d,
           rs1_data: 0, 
           rs2_data: 0, 
           insn_one_hot: 0,
@@ -733,6 +741,7 @@ module DatapathAxilMemory (
         execute_state <= '{
           pc_x: decode_state.pc,
           insn: (decode_state.cycle_status == CYCLE_RESET) ? 0 : insn_d,
+          stalled_insn: insn_d,
           rs1_data: rs1_data_decoded,
           rs2_data: rs2_data_decoded,
           insn_one_hot: insn_one_hot,
@@ -785,7 +794,7 @@ module DatapathAxilMemory (
   // MX and WX bypass:
   logic[`REG_SIZE] rs1_data_x, rs2_data_x; 
   wire mx_bypass_rs1 = (insn_rs1_x == insn_rd_m) & (insn_rs1_x != 0) & (insn_opcode_m != OpcodeStore);
-  wire wx_bypass_rs1 = (insn_rs1_x == insn_rd_w) & (insn_rs1_x != 0) & (insn_opcode_w != OpcodeStore);;
+  wire wx_bypass_rs1 = (insn_rs1_x == insn_rd_w) & (insn_rs1_x != 0) & (insn_opcode_w != OpcodeStore);
   wire mx_bypass_rs2 = (insn_rs2_x == insn_rd_m) & (insn_rs2_x != 0) & (insn_opcode_m != OpcodeStore);
   wire wx_bypass_rs2 = (insn_rs2_x == insn_rd_w) & (insn_rs2_x != 0) & (insn_opcode_w != OpcodeStore);
 
@@ -1194,6 +1203,9 @@ module DatapathAxilMemory (
       47'h400000000000: begin
         // store_data_to_dmem = 'd0;
         // store_we_to_dmem = 4'b0000;
+        dmem.WDATA = 0;
+        dmem.WSTRB = 4'b0000;
+        dmem.RREADY = 0;
         dmem.ARVALID = 0;
         rd_data_m = 'd0;
       end
