@@ -557,7 +557,7 @@ module DatapathAxilMemory (
   wire [2:0] insn_funct3_d;
   wire [4:0] insn_rd_d;
   wire [`OPCODE_SIZE] insn_opcode;
-  wire [`REG_SIZE] insn_d = (execute_state.cycle_status == CYCLE_LOAD2USE | execute_state.cycle_status == CYCLE_DIV2USE) ? execute_state.stalled_insn : (branch_taken | rst) ? decode_state.insn : imem.RDATA;
+  wire [`REG_SIZE] insn_d = (execute_state.cycle_status == CYCLE_LOAD2USE | execute_state.cycle_status == CYCLE_DIV2USE | execute_state.cycle_status == CYCLE_FENCE) ? execute_state.stalled_insn : (branch_taken | rst) ? decode_state.insn : imem.RDATA;
   wire [`REG_SIZE] stalled_insn_d = insn_d;
 
   // split R-type instruction - see section 2.2 of RiscV spec
@@ -721,7 +721,7 @@ module DatapathAxilMemory (
         execute_state <= '{
           pc_x: 0,
           insn: 0,
-          stalled_insn: 0,
+          stalled_insn: stalled_insn_d,
           rs1_data: 0, 
           rs2_data: 0, 
           insn_one_hot: 0,
